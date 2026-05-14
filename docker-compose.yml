@@ -1,0 +1,25 @@
+services:
+  server:
+    build:
+      context: .
+      dockerfile: apps/server/Dockerfile
+    ports:
+      - "1234:1234"
+    volumes:
+      - hocuspocus-data:/app/data
+    restart: unless-stopped
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    ports:
+      - "3000:3000"
+    depends_on:
+      - server
+    environment:
+      - NEXT_PUBLIC_HOCUSPOCUS_URL=ws://localhost:1234
+    restart: unless-stopped
+
+volumes:
+  hocuspocus-data:
