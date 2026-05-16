@@ -1,6 +1,6 @@
 services:
   server:
-    image: ghcr.io/TheNaFeR02/dumpbook-web/server:latest
+    image: ghcr.io/thenafer02/dumpbook-web/server:latest
     expose:
       - "1234"
     volumes:
@@ -8,7 +8,7 @@ services:
     restart: unless-stopped
 
   web:
-    image: ghcr.io/TheNaFeR02/dumpbook-web/web:latest
+    image: ghcr.io/thenafer02/dumpbook-web/web:latest
     expose:
       - "3000"
     depends_on:
