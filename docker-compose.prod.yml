@@ -1,8 +1,6 @@
 services:
   server:
-    build:
-      context: .
-      dockerfile: apps/server/Dockerfile
+    image: ghcr.io/TheNaFeR02/dumpbook-web/server:latest
     expose:
       - "1234"
     volumes:
@@ -10,9 +8,7 @@ services:
     restart: unless-stopped
 
   web:
-    build:
-      context: .
-      dockerfile: apps/web/Dockerfile
+    image: ghcr.io/TheNaFeR02/dumpbook-web/web:latest
     expose:
       - "3000"
     depends_on:
