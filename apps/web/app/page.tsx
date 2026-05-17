@@ -8,7 +8,7 @@ import Editor from './components/Editor';
 
 export default function Home() {
   return (
-    <HocuspocusProviderWebsocketComponent url="ws://127.0.0.1:1234">
+    <HocuspocusProviderWebsocketComponent url={process.env.NEXT_PUBLIC_HOCUSPOCUS_URL!}>
       <HocuspocusRoom name="example-document">
         <Editor />
       </HocuspocusRoom>
