@@ -9,6 +9,9 @@ services:
 
   web:
     image: ghcr.io/thenafer02/dumpbook-web/web:latest
+    build:
+      args:
+        - NEXT_PUBLIC_HOCUSPOCUS_URL=wss://dumpbook.ink/ws
     expose:
       - "3000"
     depends_on:
