@@ -27,15 +27,15 @@ export default function Editor() {
   })
 
   return (
-    <>
-      <header>
+    <div className="editor-wrapper">
+      <header >
         <span>Status: {status}</span>
         <span>{users.length} online</span>
       </header>
-      <EditorContent editor={editor} />
-    </>
+      <EditorContent editor={editor} className="editor-content" />
+    </div>
 
-      // <EditorContent editor={editor} />
+    // <EditorContent editor={editor} />
   )
 }
 
