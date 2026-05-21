@@ -14,12 +14,15 @@
     "@tiptap/pm": "^3.23.4",
     "@tiptap/react": "^3.23.4",
     "@tiptap/starter-kit": "^3.23.4",
+    "better-auth": "^1.6.11",
+    "better-sqlite3": "^12.10.0",
     "next": "^16.2.4",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "yjs": "^13.6.30"
   },
   "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^22.0.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
