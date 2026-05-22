@@ -1,3 +1,4 @@
+
 name: Deploy to Production
 
 on:
@@ -43,6 +44,20 @@ jobs:
           tags: ${{ env.IMAGE_PREFIX }}/web:latest
           build-args: |
             NEXT_PUBLIC_HOCUSPOCUS_URL=wss://dumpbook.ink/ws
+
+      - name: Write env file to VPS
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            cat > ~/dumpbook-web/.env.production << 'EOF'
+            BETTER_AUTH_SECRET=${{ secrets.BETTER_AUTH_SECRET }}
+            BETTER_AUTH_URL=https://dumpbook.ink
+            GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
+            GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
+            EOF
 
       - name: Deploy to VPS
         uses: appleboy/ssh-action@v1

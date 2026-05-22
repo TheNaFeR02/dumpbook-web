@@ -9,17 +9,14 @@ services:
 
   web:
     image: ghcr.io/thenafer02/dumpbook-web/web:latest
-    build:
-      args:
-        - NEXT_PUBLIC_HOCUSPOCUS_URL=wss://dumpbook.ink/ws
+    env_file:
+      - .env.production
     expose:
       - "3000"
     depends_on:
       - server
-    environment:
-      - NEXT_PUBLIC_HOCUSPOCUS_URL=wss://dumpbook.ink/ws
     restart: unless-stopped
-
+    
   nginx:
     image: nginx:alpine
     ports:
