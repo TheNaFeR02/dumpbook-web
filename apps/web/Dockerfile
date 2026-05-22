@@ -5,6 +5,7 @@ RUN corepack enable
 
 FROM base AS deps
 WORKDIR /app
+RUN apk add --no-cache python3 make g++
 COPY pnpm-lock.yaml package.json pnpm-workspace.yaml .npmrc ./
 COPY apps/web/package.json ./apps/web/
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
