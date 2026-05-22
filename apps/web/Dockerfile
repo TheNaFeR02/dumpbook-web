@@ -14,6 +14,7 @@ FROM base AS builder
 WORKDIR /app
 COPY --from=deps /app ./
 COPY apps/web ./apps/web
+RUN mkdir -p apps/web/data
 ARG NEXT_PUBLIC_HOCUSPOCUS_URL
 ENV NEXT_PUBLIC_HOCUSPOCUS_URL=$NEXT_PUBLIC_HOCUSPOCUS_URL
 RUN pnpm --filter @dumpbook/web build
