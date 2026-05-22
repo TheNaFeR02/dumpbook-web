@@ -15,6 +15,8 @@ services:
       - "3000"
     depends_on:
       - server
+    volumes:
+      - web-data:/app/data
     restart: unless-stopped
     
   nginx:
@@ -30,3 +32,4 @@ services:
 
 volumes:
   hocuspocus-data:
+  web-data:
