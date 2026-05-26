@@ -1,39 +1,50 @@
+'use client'
+
+import { useState } from 'react'
 import {
-  HocuspocusProviderWebsocketComponent,
-  HocuspocusRoom,
   useHocuspocusAwareness,
   useHocuspocusConnectionStatus,
   useHocuspocusProvider,
 } from '@hocuspocus/provider-react'
 import { EditorContent, useEditor } from '@tiptap/react'
 import Collaboration from '@tiptap/extension-collaboration'
-// import CollaborationCaret from '@tiptap/extension-collaboration-caret'
 import { StarterKit } from '@tiptap/starter-kit'
+import { authClient } from '../lib/auth-client'
+import SyncModal from './SyncModal'
 
-export default function Editor() {
+type Session = NonNullable<ReturnType<typeof authClient.useSession>['data']>
+
+interface EditorProps {
+  session: Session | null
+}
+
+export default function Editor({ session }: EditorProps) {
   const provider = useHocuspocusProvider()
   const status = useHocuspocusConnectionStatus()
   const users = useHocuspocusAwareness()
+  const [showModal, setShowModal] = useState(false)
 
   const editor = useEditor({
     extensions: [
       StarterKit.configure({ undoRedo: false }),
       Collaboration.configure({ document: provider.document }),
-      // CollaborationCaret.configure({
-      //   provider,
-      //   user: { name: 'John Doe', color: '#ffcc00' },
-      // }),
     ],
   })
 
   return (
     <div className="editor-wrapper">
-      <header className='navbar'>
+      <header className="navbar">
         <div>
-          <span>Status: {status} </span>
-          <span>{users.length} online</span>
+          <span className="status-dot" data-status={status} />
+          <span className="status-text">{users.length} online</span>
         </div>
-        <div className=''>
+        <div className="navbar-right">
+          <button
+            className={`btn-sync ${session ? 'btn-sync--in' : ''}`}
+            onClick={() => setShowModal(true)}
+          >
+            {session ? session.user.name.split(' ')[0] : 'Sync'}
+          </button>
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 32 32">
             <g className="gear-wrap">
               <rect width="32" height="32" fill="transparent" />
@@ -43,10 +54,12 @@ export default function Editor() {
           </svg>
         </div>
       </header>
-      <EditorContent editor={editor} className="editor-content" />
-    </div>
 
-    // <EditorContent editor={editor} />
+      <EditorContent editor={editor} className="editor-content" />
+
+      {showModal && (
+        <SyncModal session={session} onClose={() => setShowModal(false)} />
+      )}
+    </div>
   )
 }
-

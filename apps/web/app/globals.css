@@ -49,3 +49,151 @@ html, body {
     transform: rotate(45deg);
     opacity: 1;
   }
+
+  /* Navbar right group */
+  .navbar-right {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  /* Status indicator */
+  .status-dot {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #ccc;
+    margin-right: 0.4rem;
+    vertical-align: middle;
+  }
+  .status-dot[data-status="connected"] { background: #6ee7b7; }
+  .status-dot[data-status="connecting"] { background: #fcd34d; }
+  .status-dot[data-status="disconnected"] { background: #f87171; }
+
+  .status-text {
+    font-size: 0.75rem;
+    color: #999;
+  }
+
+  /* Sync button */
+  .btn-sync {
+    font-family: inherit;
+    font-size: 0.8rem;
+    padding: 0.2rem 0.6rem;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    background: transparent;
+    color: #555;
+    cursor: pointer;
+    transition: border-color 0.2s, color 0.2s;
+  }
+  .btn-sync:hover {
+    border-color: #9ca3af;
+    color: #222;
+  }
+  .btn-sync--in {
+    border-color: #6ee7b7;
+    color: #059669;
+  }
+  .btn-sync--in:hover {
+    border-color: #34d399;
+    color: #047857;
+  }
+
+  /* Modal */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+  }
+
+  .modal-card {
+    position: relative;
+    background: #fff;
+    border-radius: 8px;
+    padding: 2rem;
+    width: 100%;
+    max-width: 320px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+    font-family: inherit;
+  }
+
+  .modal-close {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    background: none;
+    border: none;
+    font-size: 1.25rem;
+    color: #9ca3af;
+    cursor: pointer;
+    line-height: 1;
+    padding: 0.1rem 0.3rem;
+  }
+  .modal-close:hover { color: #374151; }
+
+  .modal-title {
+    font-size: 1rem;
+    font-weight: 700;
+    margin: 0 0 0.4rem;
+    color: #111;
+  }
+  .modal-body {
+    font-size: 0.85rem;
+    color: #6b7280;
+    margin: 0 0 1.25rem;
+  }
+  .modal-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #9ca3af;
+    margin: 0 0 0.25rem;
+  }
+  .modal-name {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #111;
+    margin: 0 0 0.1rem;
+  }
+  .modal-email {
+    font-size: 0.8rem;
+    color: #6b7280;
+    margin: 0 0 1.25rem;
+  }
+
+  .btn-google {
+    width: 100%;
+    font-family: inherit;
+    font-size: 0.875rem;
+    padding: 0.6rem 1rem;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    background: #fff;
+    color: #111;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .btn-google:hover {
+    background: #f9fafb;
+    border-color: #9ca3af;
+  }
+
+  .btn-signout {
+    width: 100%;
+    font-family: inherit;
+    font-size: 0.875rem;
+    padding: 0.6rem 1rem;
+    border: 1px solid #fca5a5;
+    border-radius: 6px;
+    background: #fff;
+    color: #dc2626;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .btn-signout:hover { background: #fef2f2; }
