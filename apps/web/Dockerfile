@@ -27,8 +27,6 @@ RUN addgroup --system --gid 1001 nodejs && \
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/static ./apps/web/.next/static
 COPY --chown=nextjs:nodejs apps/web/entrypoint.sh ./entrypoint.sh
-COPY --chown=nextjs:nodejs apps/web/migrate.js ./migrate.js
-COPY --chown=nextjs:nodejs apps/web/better-auth_migrations ./migrations
 RUN chmod +x ./entrypoint.sh
 USER nextjs
 EXPOSE 3000
