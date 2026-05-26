@@ -32,4 +32,5 @@ USER nextjs
 EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
+ENV AUTH_DB_PATH=/app/data/auth.sqlite
 CMD ["./entrypoint.sh"]
