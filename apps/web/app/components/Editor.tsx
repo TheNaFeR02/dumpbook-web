@@ -1,35 +1,111 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo, useRef } from 'react'
 import {
   useHocuspocusAwareness,
   useHocuspocusConnectionStatus,
   useHocuspocusProvider,
 } from '@hocuspocus/provider-react'
-import { EditorContent, useEditor } from '@tiptap/react'
+import { EditorContent, useEditor, Extension } from '@tiptap/react'
 import Collaboration from '@tiptap/extension-collaboration'
 import { StarterKit } from '@tiptap/starter-kit'
-import { authClient } from '../lib/auth-client'
+import CharacterCount from '@tiptap/extension-character-count'
+import { Plugin, PluginKey } from '@tiptap/pm/state'
+import { authClient, startCheckout } from '../lib/auth-client'
 import SyncModal from './SyncModal'
+import type { SubscriptionStatus } from '../api/user/subscription-status/route'
 
 type Session = NonNullable<ReturnType<typeof authClient.useSession>['data']>
 
 interface EditorProps {
   session: Session | null
+  subscriptionStatus: SubscriptionStatus | null
 }
 
-export default function Editor({ session }: EditorProps) {
+const WORD_LIMITS = {
+  anonymous:     1_000,
+  sync:          2_000,
+  trial:       500_000,
+  'full-archive': 500_000,
+} as const
+
+const CHAR_LIMITS = {
+  anonymous:       6_000,
+  sync:           12_000,
+  trial:       3_000_000,
+  'full-archive': 3_000_000,
+} as const
+
+type LimitRef = { current: { wordLimit: number; charLimit: number } }
+
+function countWords(text: string) {
+  return text.trim().split(/\s+/).filter(w => w.length > 0).length
+}
+
+// Plugin reads limits from a ref so it picks up tier changes without recreating the editor.
+function createWordLimitPlugin(limitRef: LimitRef) {
+  return new Plugin({
+    key: new PluginKey('wordLimit'),
+    filterTransaction(tr, state) {
+      if (!tr.docChanged) return true
+      const { wordLimit, charLimit } = limitRef.current
+      const oldText = state.doc.textContent
+      const newText = tr.doc.textContent
+      // Pure deletion — always allow
+      if (newText.length < oldText.length) return true
+      // Already at either limit — block any growth (including spaces and newlines)
+      if (countWords(oldText) >= wordLimit || oldText.length >= charLimit) return false
+      // Under both limits — allow only if new state stays within them
+      return countWords(newText) <= wordLimit && newText.length <= charLimit
+    },
+  })
+}
+
+export default function Editor({ session, subscriptionStatus }: EditorProps) {
   const provider = useHocuspocusProvider()
   const status = useHocuspocusConnectionStatus()
   const users = useHocuspocusAwareness()
   const [showModal, setShowModal] = useState(false)
+  const [wordCount, setWordCount] = useState(0)
+  const [charCount, setCharCount] = useState(0)
+
+  const tier = subscriptionStatus?.tier ?? (session ? 'sync' : 'anonymous')
+  const wordLimit = WORD_LIMITS[tier] ?? WORD_LIMITS['full-archive']
+  const charLimit = CHAR_LIMITS[tier] ?? CHAR_LIMITS['full-archive']
+  const isAtLimit = wordCount >= wordLimit || charCount >= charLimit
+
+  // Updated every render — the plugin reads from this ref, so enforcement is always current.
+  const limitRef = useRef({ wordLimit, charLimit })
+  limitRef.current = { wordLimit, charLimit }
+
+  // Extension created once; limits come from the ref, not a stale closure.
+  const WordLimitExtension = useMemo(() => Extension.create({
+    name: 'wordLimit',
+    addProseMirrorPlugins: () => [createWordLimitPlugin(limitRef)],
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }), [])
 
   const editor = useEditor({
     extensions: [
       StarterKit.configure({ undoRedo: false }),
       Collaboration.configure({ document: provider.document }),
+      CharacterCount.configure({}),
+      WordLimitExtension,
     ],
+    onUpdate: ({ editor: e }) => {
+      const text = e.state.doc.textContent
+      setWordCount(countWords(text))
+      setCharCount(text.length)
+    },
   })
+
+  const handleUpgrade = () => {
+    if (!session) {
+      setShowModal(true)
+      return
+    }
+    startCheckout('full-archive')
+  }
 
   return (
     <div className="editor-wrapper">
@@ -57,8 +133,32 @@ export default function Editor({ session }: EditorProps) {
 
       <EditorContent editor={editor} className="editor-content" />
 
+      {isAtLimit && (
+        <div className="editor-limit-banner">
+          {tier === 'anonymous' ? (
+            <>
+              You&apos;ve reached the {WORD_LIMITS.anonymous.toLocaleString()}-word limit.
+              <button onClick={() => setShowModal(true)}>Sign in to keep dumping</button>
+            </>
+          ) : tier === 'sync' ? (
+            <>
+              You&apos;ve reached the {WORD_LIMITS.sync.toLocaleString()}-word Sync limit.
+              <button onClick={handleUpgrade}>Start free trial to keep writing</button>
+            </>
+          ) : (
+            <>
+              You&apos;ve reached the maximum document size.
+            </>
+          )}
+        </div>
+      )}
+
       {showModal && (
-        <SyncModal session={session} onClose={() => setShowModal(false)} />
+        <SyncModal
+          session={session}
+          subscriptionStatus={subscriptionStatus}
+          onClose={() => setShowModal(false)}
+        />
       )}
     </div>
   )
