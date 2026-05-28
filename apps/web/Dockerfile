@@ -26,11 +26,9 @@ RUN addgroup --system --gid 1001 nodejs && \
     mkdir -p /app/data && chown nextjs:nodejs /app/data
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/static ./apps/web/.next/static
-COPY --chown=nextjs:nodejs apps/web/entrypoint.sh ./entrypoint.sh
-RUN chmod +x ./entrypoint.sh
 USER nextjs
 EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 ENV AUTH_DB_PATH=/app/data/auth.sqlite
-CMD ["./entrypoint.sh"]
+CMD ["node", "apps/web/server.js"]
