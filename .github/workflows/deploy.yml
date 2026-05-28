@@ -17,6 +17,26 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate schema SQL
+        run: |
+          cd apps/web
+          NODE_PATH=../../node_modules pnpm dlx auth@latest generate --output /tmp/schema.sql
+          echo "SCHEMA_B64=$(base64 -w 0 /tmp/schema.sql)" >> $GITHUB_ENV
+
       - name: Set lowercase image prefix
         run: echo "IMAGE_PREFIX=ghcr.io/$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
 
@@ -66,24 +86,12 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
-            if ! command -v node &>/dev/null; then
-              curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
-              apt-get install -y nodejs
+            if ! command -v sqlite3 &>/dev/null; then
+              apt-get install -y sqlite3
             fi
-            if ! command -v pnpm &>/dev/null; then
-              npm install -g pnpm
-            fi
-            if [ -d ~/dumpbook-web/.git ]; then
-              git -C ~/dumpbook-web pull origin main
-            else
-              git clone https://github.com/TheNaFeR02/dumpbook-web.git ~/dumpbook-web
-            fi
-            cd ~/dumpbook-web
-            pnpm install --frozen-lockfile
-            cd apps/web
-            AUTH_DB_PATH=/var/lib/docker/volumes/dumpbook-web_web-data/_data/auth.sqlite \
-              NODE_PATH=../../node_modules \
-              pnpm dlx auth@latest migrate
+            mkdir -p /var/lib/docker/volumes/dumpbook-web_web-data/_data
+            echo "${{ env.SCHEMA_B64 }}" | base64 -d | \
+              sqlite3 /var/lib/docker/volumes/dumpbook-web_web-data/_data/auth.sqlite
 
       - name: Deploy to VPS
         uses: appleboy/ssh-action@v1
