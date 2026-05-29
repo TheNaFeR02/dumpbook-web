@@ -6,10 +6,12 @@ import {
   useHocuspocusConnectionStatus,
   useHocuspocusProvider,
 } from '@hocuspocus/provider-react'
-import { EditorContent, useEditor } from '@tiptap/react'
+import { EditorContent, useEditor, useEditorState } from '@tiptap/react'
 import Collaboration from '@tiptap/extension-collaboration'
 import { StarterKit } from '@tiptap/starter-kit'
 import { authClient } from '../lib/auth-client'
+import { TIERS } from '../lib/tiers'
+import { ContentLimit, type ContentLimitStorage } from '../lib/extensions/ContentLimit'
 import SyncModal from './SyncModal'
 
 type Session = NonNullable<ReturnType<typeof authClient.useSession>['data']>
@@ -24,11 +26,26 @@ export default function Editor({ session }: EditorProps) {
   const users = useHocuspocusAwareness()
   const [showModal, setShowModal] = useState(false)
 
+  const tier = session ? 'authenticated' : 'anonymous'
+  const limits = TIERS[tier]
+
   const editor = useEditor({
     extensions: [
       StarterKit.configure({ undoRedo: false }),
       Collaboration.configure({ document: provider.document }),
+      ContentLimit.configure(limits),
     ],
+  })
+
+  const counts = useEditorState({
+    editor,
+    selector: (ctx) => {
+      const storage = ctx.editor?.storage as unknown as { contentLimit: ContentLimitStorage } | undefined
+      return {
+        wordCount: storage?.contentLimit.wordCount ?? 0,
+        charCount: storage?.contentLimit.charCount ?? 0,
+      }
+    },
   })
 
   return (
@@ -56,6 +73,18 @@ export default function Editor({ session }: EditorProps) {
       </header>
 
       <EditorContent editor={editor} className="editor-content" />
+
+      {tier === 'anonymous' && (
+        <div className="content-limit-bar">
+          <span className={counts.wordCount >= limits.wordLimit * 0.9 ? 'limit-warning' : ''}>
+            {counts.wordCount} / {limits.wordLimit.toLocaleString()} words
+          </span>
+          <span className="limit-separator">·</span>
+          <span className={counts.charCount >= limits.charLimit * 0.9 ? 'limit-warning' : ''}>
+            {counts.charCount} / {limits.charLimit.toLocaleString()} characters
+          </span>
+        </div>
+      )}
 
       {showModal && (
         <SyncModal session={session} onClose={() => setShowModal(false)} />

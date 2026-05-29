@@ -197,3 +197,21 @@ html, body {
     transition: background 0.15s;
   }
   .btn-signout:hover { background: #fef2f2; }
+
+  /* Anonymous tier content limit counter */
+  .content-limit-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0;
+    font-size: 0.72rem;
+    color: #9ca3af;
+  }
+
+  .limit-separator {
+    color: #d1d5db;
+  }
+
+  .limit-warning {
+    color: #f59e0b;
+  }

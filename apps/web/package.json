@@ -10,16 +10,21 @@
   "dependencies": {
     "@hocuspocus/provider": "^4.0.0",
     "@hocuspocus/provider-react": "^4.0.0",
-    "@tiptap/extension-collaboration": "^3.23.4",
-    "@tiptap/pm": "^3.23.4",
-    "@tiptap/react": "^3.23.4",
-    "@tiptap/starter-kit": "^3.23.4",
+    "@polar-sh/better-auth": "^1.8.4",
+    "@polar-sh/sdk": "^0.47.1",
+    "@tiptap/core": "3.23.6",
+    "@tiptap/extension-collaboration": "3.23.6",
+    "@tiptap/pm": "3.23.6",
+    "@tiptap/react": "3.23.6",
+    "@tiptap/starter-kit": "3.23.6",
     "better-auth": "^1.6.11",
     "better-sqlite3": "^12.10.0",
     "next": "^16.2.4",
+    "prosemirror-state": "^1.4.4",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
-    "yjs": "^13.6.30"
+    "yjs": "^13.6.30",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.13",
