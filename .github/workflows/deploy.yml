@@ -30,6 +30,16 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Generate schema SQL
+        env:
+          NEXT_PUBLIC_HOCUSPOCUS_URL: ws://localhost:1234
+          BETTER_AUTH_SECRET: ci-placeholder
+          BETTER_AUTH_URL: http://localhost:3000
+          GOOGLE_CLIENT_ID: ci-placeholder
+          GOOGLE_CLIENT_SECRET: ci-placeholder
+          POLAR_ACCESS_TOKEN: ci-placeholder
+          POLAR_PRODUCT_ID: ci-placeholder
+          POLAR_WEBHOOK_SECRET: ci-placeholder
+          HOCUSPOCUS_SECRET: ci-placeholder
         run: |
           cd apps/web
           NODE_PATH=../../node_modules pnpm dlx auth@latest generate --output /tmp/schema.sql
