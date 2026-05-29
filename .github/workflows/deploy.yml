@@ -85,6 +85,10 @@ jobs:
             BETTER_AUTH_URL=https://dumpbook.ink
             GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
             GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
+            POLAR_ACCESS_TOKEN=${{ secrets.POLAR_ACCESS_TOKEN }}
+            POLAR_PRODUCT_ID=${{ secrets.POLAR_PRODUCT_ID }}
+            POLAR_WEBHOOK_SECRET=${{ secrets.POLAR_WEBHOOK_SECRET }}
+            HOCUSPOCUS_SECRET=${{ secrets.HOCUSPOCUS_SECRET }}
             EOF
 
       - name: Migrate database
