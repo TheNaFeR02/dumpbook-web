@@ -88,6 +88,7 @@ jobs:
             POLAR_ACCESS_TOKEN=${{ secrets.POLAR_ACCESS_TOKEN }}
             POLAR_PRODUCT_ID=${{ secrets.POLAR_PRODUCT_ID }}
             POLAR_WEBHOOK_SECRET=${{ secrets.POLAR_WEBHOOK_SECRET }}
+            POLAR_SERVER=production
             HOCUSPOCUS_SECRET=${{ secrets.HOCUSPOCUS_SECRET }}
             EOF
 
