@@ -16,6 +16,15 @@ COPY --from=deps /app ./
 COPY apps/web ./apps/web
 ARG NEXT_PUBLIC_HOCUSPOCUS_URL
 ENV NEXT_PUBLIC_HOCUSPOCUS_URL=$NEXT_PUBLIC_HOCUSPOCUS_URL
+# Placeholders so env.ts doesn't throw during static build; real values are injected at runtime
+ENV BETTER_AUTH_SECRET=build-placeholder
+ENV BETTER_AUTH_URL=http://localhost:3000
+ENV GOOGLE_CLIENT_ID=build-placeholder
+ENV GOOGLE_CLIENT_SECRET=build-placeholder
+ENV POLAR_ACCESS_TOKEN=build-placeholder
+ENV POLAR_PRODUCT_ID=build-placeholder
+ENV POLAR_WEBHOOK_SECRET=build-placeholder
+ENV HOCUSPOCUS_SECRET=build-placeholder
 RUN pnpm --filter @dumpbook/web build
 
 FROM base AS runner
