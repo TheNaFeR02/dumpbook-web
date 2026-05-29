@@ -48,6 +48,9 @@ export default function Editor({ session }: EditorProps) {
     },
   })
 
+  const isAtLimit =
+    counts.wordCount >= limits.wordLimit || counts.charCount >= limits.charLimit
+
   return (
     <div className="editor-wrapper">
       <header className="navbar">
@@ -73,6 +76,21 @@ export default function Editor({ session }: EditorProps) {
       </header>
 
       <EditorContent editor={editor} className="editor-content" />
+
+      {isAtLimit && (
+        <div className="editor-limit-banner">
+          {tier === 'anonymous' ? (
+            <>
+              You&apos;ve reached the {limits.wordLimit.toLocaleString()}-word limit.
+              <button onClick={() => setShowModal(true)}>Sign in to keep dumping</button>
+            </>
+          ) : (
+            <>
+              You&apos;ve reached the maximum document size.
+            </>
+          )}
+        </div>
+      )}
 
       {tier === 'anonymous' && (
         <div className="content-limit-bar">

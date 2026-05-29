@@ -215,3 +215,26 @@ html, body {
   .limit-warning {
     color: #f59e0b;
   }
+
+  /* Word limit reached banner */
+  .editor-limit-banner {
+    text-align: center;
+    padding: 0.6rem 1rem;
+    background: #fffbeb;
+    border-top: 1px solid #fde68a;
+    font-size: 0.8rem;
+    color: #92400e;
+  }
+
+  .editor-limit-banner button {
+    font-family: inherit;
+    font-size: 0.8rem;
+    font-weight: 600;
+    background: none;
+    border: none;
+    color: #d97706;
+    cursor: pointer;
+    text-decoration: underline;
+    padding: 0;
+    margin-left: 0.25rem;
+  }
