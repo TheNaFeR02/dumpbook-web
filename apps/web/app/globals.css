@@ -225,11 +225,10 @@ html, body {
 
   /* Gradient overlay shown when the server has truncated an over-limit document */
   .editor-over-limit-gradient {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
     height: 200px;
+    margin-top: -200px;
+    position: relative;
+    z-index: 1;
     background: linear-gradient(to bottom, transparent 0%, rgba(255, 255, 255, 0.7) 50%, #fff 100%);
     pointer-events: none;
   }
