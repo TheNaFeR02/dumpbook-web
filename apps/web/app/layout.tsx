@@ -40,11 +40,11 @@ export default function RootLayout({
     <html lang="en" className={iAWriterDuospacefont.className}>
       <body
         style={{
-          minHeight: "100vh",
+          height: "100dvh",
           display: "flex",
           justifyContent: "center",
           alignItems: "flex-start",
-          padding: "3rem 1.5rem",  // a bit more top padding
+          padding: "3rem 1.5rem",
           boxSizing: "border-box",
           margin: 0,
         }}
@@ -52,7 +52,8 @@ export default function RootLayout({
         <main
           style={{
             width: "100%",
-            maxWidth: "680px",  // slightly narrower, matches your screenshot
+            maxWidth: "680px",
+            height: "100%",
           }}
         >
           {children}
