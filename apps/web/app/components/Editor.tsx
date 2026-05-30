@@ -13,6 +13,7 @@ import { authClient } from '../lib/auth-client'
 import { TIERS, type TierName } from '../lib/tiers'
 import { ContentLimit, type ContentLimitStorage } from '../lib/extensions/ContentLimit'
 import SyncModal from './SyncModal'
+import UpgradeModal from './UpgradeModal'
 
 type Session = NonNullable<ReturnType<typeof authClient.useSession>['data']>
 
@@ -25,6 +26,7 @@ export default function Editor({ session }: EditorProps) {
   const status = useHocuspocusConnectionStatus()
   const users = useHocuspocusAwareness()
   const [showModal, setShowModal] = useState(false)
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false)
 
   const tier = (session ? 'sync' : 'local') as TierName
   const limits = TIERS[tier]
@@ -88,6 +90,11 @@ export default function Editor({ session }: EditorProps) {
           <span className="status-text">{users.length} online</span>
         </div>
         <div className="navbar-right">
+          {tier === 'sync' && (
+            <button className="btn-upgrade" onClick={() => setShowUpgradeModal(true)}>
+              Upgrade
+            </button>
+          )}
           <button
             className={`btn-sync ${session ? 'btn-sync--in' : ''}`}
             onClick={() => setShowModal(true)}
@@ -112,7 +119,9 @@ export default function Editor({ session }: EditorProps) {
       {isTruncated && (
         <div className="editor-limit-banner">
           Your document has {originalWordCount.toLocaleString()} words — above your {limits.wordLimit.toLocaleString()}-word {tierLabel} plan.
-          <button onClick={() => setShowModal(true)}>Upgrade to keep writing</button>
+          <button onClick={() => tier === 'sync' ? setShowUpgradeModal(true) : setShowModal(true)}>
+            Upgrade to keep writing
+          </button>
         </div>
       )}
 
@@ -126,6 +135,7 @@ export default function Editor({ session }: EditorProps) {
           ) : tier === 'sync' ? (
             <>
               You&apos;ve reached the {limits.wordLimit.toLocaleString()}-word limit.
+              <button onClick={() => setShowUpgradeModal(true)}>Upgrade to keep writing</button>
             </>
           ) : (
             <>
@@ -149,6 +159,9 @@ export default function Editor({ session }: EditorProps) {
 
       {showModal && (
         <SyncModal session={session} onClose={() => setShowModal(false)} />
+      )}
+      {showUpgradeModal && (
+        <UpgradeModal onClose={() => setShowUpgradeModal(false)} />
       )}
     </div>
   )
