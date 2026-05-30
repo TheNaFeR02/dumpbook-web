@@ -1,6 +1,6 @@
 import { Extension } from '@tiptap/core'
 import { Plugin, PluginKey } from 'prosemirror-state'
-import type { Tier } from '../tiers'
+import type { TierLimits } from '../tiers'
 
 const pluginKey = new PluginKey('contentLimit')
 
@@ -14,7 +14,7 @@ export interface ContentLimitStorage {
   charCount: number
 }
 
-export const ContentLimit = Extension.create<Tier, ContentLimitStorage>({
+export const ContentLimit = Extension.create<TierLimits, ContentLimitStorage>({
   name: 'contentLimit',
 
   addOptions() {

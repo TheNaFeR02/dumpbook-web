@@ -7,3 +7,4 @@ export const TIERS = {
 
 export type TierName = keyof typeof TIERS
 export type Tier = typeof TIERS[TierName]
+export type TierLimits = { wordLimit: number; charLimit: number }
