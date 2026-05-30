@@ -34,15 +34,6 @@ html, body {
     min-height: 100%;
   }
 
-  .editor-over-limit-gradient {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 120px;
-    background: linear-gradient(to bottom, transparent, #fff);
-    pointer-events: none;
-  }
   
   .ProseMirror {
     height: 100%;

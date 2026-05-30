@@ -1,10 +1,6 @@
 import * as Y from "yjs"
 
-export function textFromYDoc(doc: Y.Doc): string {
-  return textFromXml(doc.getXmlFragment("default"))
-}
-
-function textFromXml(el: Y.XmlFragment | Y.XmlElement): string {
+export function textFromXml(el: Y.XmlFragment | Y.XmlElement): string {
   return el
     .toArray()
     .map((child) => {
@@ -15,7 +11,49 @@ function textFromXml(el: Y.XmlFragment | Y.XmlElement): string {
     .join("")
 }
 
+export function textFromYDoc(doc: Y.Doc): string {
+  return textFromXml(doc.getXmlFragment("default"))
+}
+
 export function countWords(text: string): number {
   const trimmed = text.trim()
   return trimmed === "" ? 0 : trimmed.split(/\s+/).length
+}
+
+export function truncateYDocToLimit(
+  doc: Y.Doc,
+  limits: { wordLimit: number; charLimit: number },
+): void {
+  const fragment = doc.getXmlFragment("default")
+  const elements = fragment.toArray()
+
+  let wordsSoFar = 0
+  let charsSoFar = 0
+  let cutoffIndex = elements.length
+
+  for (let i = 0; i < elements.length; i++) {
+    const el = elements[i]
+    const elText =
+      el instanceof Y.XmlElement
+        ? textFromXml(el) + "\n"
+        : el instanceof Y.XmlText
+          ? el.toString()
+          : ""
+
+    if (
+      wordsSoFar + countWords(elText) > limits.wordLimit ||
+      charsSoFar + elText.length > limits.charLimit
+    ) {
+      cutoffIndex = i
+      break
+    }
+    wordsSoFar += countWords(elText)
+    charsSoFar += elText.length
+  }
+
+  if (cutoffIndex < elements.length) {
+    doc.transact(() => {
+      fragment.delete(cutoffIndex, fragment.length - cutoffIndex)
+    })
+  }
 }

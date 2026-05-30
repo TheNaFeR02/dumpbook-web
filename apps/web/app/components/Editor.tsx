@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useLayoutEffect } from 'react'
+import { useState } from 'react'
 import {
   useHocuspocusAwareness,
   useHocuspocusConnectionStatus,
@@ -50,27 +50,6 @@ export default function Editor({ session }: EditorProps) {
 
   const isAtLimit =
     counts.wordCount >= limits.wordLimit || counts.charCount >= limits.charLimit
-  const isOverLimit =
-    counts.wordCount > limits.wordLimit || counts.charCount > limits.charLimit
-
-  // Proportionally cap the editor height to show only the tier-limit's worth of content.
-  // Runs before paint so there's no flash of uncapped content.
-  const scrollAreaRef = useRef<HTMLDivElement>(null)
-  const countsRef = useRef(counts)
-  countsRef.current = counts
-  const [cutoffHeight, setCutoffHeight] = useState<number | null>(null)
-
-  useLayoutEffect(() => {
-    if (!isOverLimit) {
-      setCutoffHeight(null)
-      return
-    }
-    const el = scrollAreaRef.current
-    if (!el || countsRef.current.wordCount === 0) return
-    const full = el.scrollHeight
-    if (full === 0) return
-    setCutoffHeight(Math.round(full * (limits.wordLimit / countsRef.current.wordCount)))
-  }, [isOverLimit, limits.wordLimit])
 
   return (
     <div className="editor-wrapper">
@@ -96,22 +75,11 @@ export default function Editor({ session }: EditorProps) {
         </div>
       </header>
 
-      <div
-        className="editor-scroll-area"
-        ref={scrollAreaRef}
-        style={cutoffHeight !== null ? { maxHeight: cutoffHeight, overflow: 'hidden' } : undefined}
-      >
+      <div className="editor-scroll-area">
         <EditorContent editor={editor} className="editor-content" />
-        {isOverLimit && <div className="editor-over-limit-gradient" aria-hidden="true" />}
       </div>
 
-      {isOverLimit && (
-        <div className="editor-limit-banner">
-          Your document has {counts.wordCount.toLocaleString()} words — above the {limits.wordLimit.toLocaleString()}-word Sync limit. Upgrade to Dumpbook Full to keep writing.
-        </div>
-      )}
-
-      {isAtLimit && !isOverLimit && (
+      {isAtLimit && (
         <div className="editor-limit-banner">
           {tier === 'local' ? (
             <>
