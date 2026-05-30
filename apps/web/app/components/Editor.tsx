@@ -10,7 +10,7 @@ import { EditorContent, useEditor, useEditorState } from '@tiptap/react'
 import Collaboration from '@tiptap/extension-collaboration'
 import { StarterKit } from '@tiptap/starter-kit'
 import { authClient } from '../lib/auth-client'
-import { TIERS } from '../lib/tiers'
+import { TIERS, type TierName } from '../lib/tiers'
 import { ContentLimit, type ContentLimitStorage } from '../lib/extensions/ContentLimit'
 import SyncModal from './SyncModal'
 
@@ -26,7 +26,7 @@ export default function Editor({ session }: EditorProps) {
   const users = useHocuspocusAwareness()
   const [showModal, setShowModal] = useState(false)
 
-  const tier = session ? 'authenticated' : 'anonymous'
+  const tier = (session ? 'sync' : 'local') as TierName
   const limits = TIERS[tier]
 
   const editor = useEditor({
@@ -79,10 +79,14 @@ export default function Editor({ session }: EditorProps) {
 
       {isAtLimit && (
         <div className="editor-limit-banner">
-          {tier === 'anonymous' ? (
+          {tier === 'local' ? (
             <>
               You&apos;ve reached the {limits.wordLimit.toLocaleString()}-word limit.
               <button onClick={() => setShowModal(true)}>Sign in to keep dumping</button>
+            </>
+          ) : tier === 'sync' ? (
+            <>
+              You&apos;ve reached the {limits.wordLimit.toLocaleString()}-word limit.
             </>
           ) : (
             <>
@@ -92,7 +96,7 @@ export default function Editor({ session }: EditorProps) {
         </div>
       )}
 
-      {tier === 'anonymous' && (
+      {tier !== 'full' && (
         <div className="content-limit-bar">
           <span className={counts.wordCount >= limits.wordLimit * 0.9 ? 'limit-warning' : ''}>
             {counts.wordCount} / {limits.wordLimit.toLocaleString()} words

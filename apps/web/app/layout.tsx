@@ -4,7 +4,7 @@ import "./globals.css"
 
 export const metadata: Metadata = {
   title: "Dumpbook",
-  description: "Collaborative editing with Hocuspocus",
+  description: "Dumping thoughts.",
 };
 
 const iAWriterDuospacefont = localFont({

@@ -1,6 +1,8 @@
+// Keep in sync with apps/server/src/tiers.ts
 export const TIERS = {
-  anonymous:     { wordLimit: 1000, charLimit: 6000 },
-  authenticated: { wordLimit: Infinity, charLimit: Infinity },
+  local: { wordLimit: 1_000,    charLimit: 6_000 },
+  sync:  { wordLimit: 2_000,    charLimit: 12_000 },
+  full:  { wordLimit: Infinity, charLimit: Infinity },
 } as const
 
 export type TierName = keyof typeof TIERS

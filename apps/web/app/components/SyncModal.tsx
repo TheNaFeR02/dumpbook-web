@@ -11,7 +11,7 @@ interface SyncModalProps {
 
 export default function SyncModal({ session, onClose }: SyncModalProps) {
   const handleSignIn = () => {
-    authClient.signIn.social({ provider: 'google', callbackURL: window.location.href })
+    authClient.signIn.social({ provider: 'google', callbackURL: "/" })
   }
 
   const handleSignOut = async () => {
