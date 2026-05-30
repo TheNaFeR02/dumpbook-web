@@ -223,6 +223,17 @@ html, body {
     color: #f59e0b;
   }
 
+  /* Gradient overlay shown when the server has truncated an over-limit document */
+  .editor-over-limit-gradient {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 200px;
+    background: linear-gradient(to bottom, transparent 0%, rgba(255, 255, 255, 0.7) 50%, #fff 100%);
+    pointer-events: none;
+  }
+
   /* Word limit reached banner */
   .editor-limit-banner {
     text-align: center;

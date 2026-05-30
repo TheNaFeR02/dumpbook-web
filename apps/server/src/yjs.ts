@@ -27,6 +27,12 @@ export function truncateYDocToLimit(
   const fragment = doc.getXmlFragment("default")
   const elements = fragment.toArray()
 
+  // Capture original counts before any modification.
+  const originalText = textFromYDoc(doc)
+  const originalWordCount = countWords(originalText)
+  const originalCharCount = originalText.length
+
+  // Walk forward and find the first element that crosses the limit.
   let wordsSoFar = 0
   let charsSoFar = 0
   let cutoffIndex = elements.length
@@ -50,6 +56,14 @@ export function truncateYDocToLimit(
     wordsSoFar += countWords(elText)
     charsSoFar += elText.length
   }
+
+  // Write truncation metadata so the client can show original counts and gradient.
+  doc.transact(() => {
+    const meta = doc.getMap("_meta")
+    meta.set("truncated", true)
+    meta.set("originalWordCount", originalWordCount)
+    meta.set("originalCharCount", originalCharCount)
+  })
 
   if (cutoffIndex < elements.length) {
     doc.transact(() => {

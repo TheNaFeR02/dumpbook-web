@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   useHocuspocusAwareness,
   useHocuspocusConnectionStatus,
@@ -48,8 +48,37 @@ export default function Editor({ session }: EditorProps) {
     },
   })
 
+  // Observe the _meta Y.Map written by the server when it truncates an over-limit document.
+  const [isTruncated, setIsTruncated] = useState(false)
+  const [originalWordCount, setOriginalWordCount] = useState(0)
+  const [originalCharCount, setOriginalCharCount] = useState(0)
+
+  useEffect(() => {
+    const meta = provider.document.getMap<number | boolean>('_meta')
+    const sync = () => {
+      const truncated = !!meta.get('truncated')
+      setIsTruncated(truncated)
+      setOriginalWordCount((meta.get('originalWordCount') as number) ?? 0)
+      setOriginalCharCount((meta.get('originalCharCount') as number) ?? 0)
+    }
+    meta.observe(sync)
+    sync()
+    return () => meta.unobserve(sync)
+  }, [provider.document])
+
+  // Make the editor read-only when the document has been server-truncated.
+  useEffect(() => {
+    if (!editor) return
+    editor.setEditable(!isTruncated)
+  }, [editor, isTruncated])
+
   const isAtLimit =
     counts.wordCount >= limits.wordLimit || counts.charCount >= limits.charLimit
+
+  const displayWordCount = isTruncated ? originalWordCount : counts.wordCount
+  const displayCharCount = isTruncated ? originalCharCount : counts.charCount
+
+  const tierLabel = tier === 'sync' ? 'Sync' : tier === 'local' ? 'Local' : 'Full'
 
   return (
     <div className="editor-wrapper">
@@ -77,9 +106,17 @@ export default function Editor({ session }: EditorProps) {
 
       <div className="editor-scroll-area">
         <EditorContent editor={editor} className="editor-content" />
+        {isTruncated && <div className="editor-over-limit-gradient" aria-hidden="true" />}
       </div>
 
-      {isAtLimit && (
+      {isTruncated && (
+        <div className="editor-limit-banner">
+          Your document has {originalWordCount.toLocaleString()} words — above your {limits.wordLimit.toLocaleString()}-word {tierLabel} plan.
+          <button onClick={() => setShowModal(true)}>Upgrade to keep writing</button>
+        </div>
+      )}
+
+      {!isTruncated && isAtLimit && (
         <div className="editor-limit-banner">
           {tier === 'local' ? (
             <>
@@ -100,12 +137,12 @@ export default function Editor({ session }: EditorProps) {
 
       {tier !== 'full' && (
         <div className="content-limit-bar">
-          <span className={counts.wordCount >= limits.wordLimit * 0.9 ? 'limit-warning' : ''}>
-            {counts.wordCount.toLocaleString()} / {limits.wordLimit.toLocaleString()} words
+          <span className={displayWordCount >= limits.wordLimit * 0.9 || isTruncated ? 'limit-warning' : ''}>
+            {displayWordCount.toLocaleString()} / {limits.wordLimit.toLocaleString()} words
           </span>
           <span className="limit-separator">·</span>
-          <span className={counts.charCount >= limits.charLimit * 0.9 ? 'limit-warning' : ''}>
-            {counts.charCount.toLocaleString()} / {limits.charLimit.toLocaleString()} characters
+          <span className={displayCharCount >= limits.charLimit * 0.9 || isTruncated ? 'limit-warning' : ''}>
+            {displayCharCount.toLocaleString()} / {limits.charLimit.toLocaleString()} characters
           </span>
         </div>
       )}
