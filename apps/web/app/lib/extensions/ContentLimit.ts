@@ -43,6 +43,10 @@ export const ContentLimit = Extension.create<Tier, ContentLimitStorage>({
         key: pluginKey,
         filterTransaction(tr, state) {
           if (!tr.docChanged) return true
+          // Yjs sync transactions (initial load + remote changes) must never be blocked —
+          // filtering them causes existing over-limit documents to appear blank.
+          if (tr.getMeta('y-sync$') !== undefined) return true
+
           const newText = tr.doc.textBetween(0, tr.doc.content.size, '\n')
           const newChars = newText.length
           const newWords = countWords(newText)

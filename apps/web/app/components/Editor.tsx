@@ -50,6 +50,8 @@ export default function Editor({ session }: EditorProps) {
 
   const isAtLimit =
     counts.wordCount >= limits.wordLimit || counts.charCount >= limits.charLimit
+  const isOverLimit =
+    counts.wordCount > limits.wordLimit || counts.charCount > limits.charLimit
 
   return (
     <div className="editor-wrapper">
@@ -75,9 +77,18 @@ export default function Editor({ session }: EditorProps) {
         </div>
       </header>
 
-      <EditorContent editor={editor} className="editor-content" />
+      <div className="editor-scroll-area">
+        <EditorContent editor={editor} className="editor-content" />
+        {isOverLimit && <div className="editor-over-limit-gradient" aria-hidden="true" />}
+      </div>
 
-      {isAtLimit && (
+      {isOverLimit && (
+        <div className="editor-limit-banner">
+          Your document exceeds the {limits.wordLimit.toLocaleString()}-word {tier === 'sync' ? 'Sync' : ''} plan limit — read below, but no new writing until you upgrade.
+        </div>
+      )}
+
+      {isAtLimit && !isOverLimit && (
         <div className="editor-limit-banner">
           {tier === 'local' ? (
             <>
