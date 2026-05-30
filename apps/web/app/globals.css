@@ -35,11 +35,11 @@ html, body {
   }
 
   .editor-over-limit-gradient {
-    position: sticky;
+    position: absolute;
     bottom: 0;
-    display: block;
+    left: 0;
+    right: 0;
     height: 120px;
-    margin-top: -120px;
     background: linear-gradient(to bottom, transparent, #fff);
     pointer-events: none;
   }
