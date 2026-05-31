@@ -284,16 +284,16 @@ html, body {
     border-radius: 6px;
   }
   .upgrade-tier--sync {
-    border-color: #bbf7d0;
-    background: #f0fdf4;
+    border-color: #93c5fd;
+    background: #eff6ff;
   }
 
   .upgrade-tier--sync .upgrade-tier-name {
-    color: #16a34a;
+    color: #1d4ed8;
   }
 
   .upgrade-tier--sync .upgrade-tier-detail {
-    color: #16a34a;
+    color: #3b82f6;
   }
 
   .upgrade-tier--highlight {
@@ -319,7 +319,7 @@ html, body {
   }
 
   .upgrade-tier--sync .upgrade-tier-price {
-    color: #16a34a;
+    color: #1d4ed8;
   }
 
   .upgrade-tier--highlight .upgrade-tier-price {
