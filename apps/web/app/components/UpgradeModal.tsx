@@ -35,7 +35,12 @@ export default function UpgradeModal({ onClose }: UpgradeModalProps) {
           <div className="upgrade-tier upgrade-tier--highlight">
             <div className="upgrade-tier-row">
               <div>
-                <p className="upgrade-tier-name"><img src="/crown.svg" alt="" className="upgrade-crown" />Dumpbook Full <span className="upgrade-trial-tag">7-day trial</span></p>
+                <p className="upgrade-tier-name">
+                  <svg className="upgrade-crown" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5zm0 2h14v2H5v-2z"/>
+                  </svg>
+                  Dumpbook Full <span className="upgrade-trial-tag">7-day trial</span>
+                </p>
                 <p className="upgrade-tier-detail">Full history · 5 devices · Unlimited</p>
               </div>
               <p className="upgrade-tier-price">$4<span className="upgrade-tier-price-mo">/mo</span></p>
