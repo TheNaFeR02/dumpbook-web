@@ -111,7 +111,7 @@ export default function Editor({ session }: EditorProps) {
         </div>
       </header>
 
-      <div className="editor-scroll-area">
+      <div className="editor-scroll-area" onClick={(e) => { if (e.target === e.currentTarget) editor?.commands.focus('end') }}>
         <EditorContent editor={editor} className="editor-content" />
         {isTruncated && <div className="editor-over-limit-gradient" aria-hidden="true" />}
       </div>

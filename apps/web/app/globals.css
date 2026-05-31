@@ -30,13 +30,8 @@ html, body {
     min-height: 0;
   }
 
-  .editor-content {
-    height: 100%;
-  }
-
   .ProseMirror {
-    height: 100%;
-    /* outline: none; */
+    outline: none;
   }
 
   .navbar {
