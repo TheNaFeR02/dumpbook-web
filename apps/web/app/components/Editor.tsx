@@ -14,21 +14,23 @@ import { TIERS, type TierName } from '../lib/tiers'
 import { ContentLimit, type ContentLimitStorage } from '../lib/extensions/ContentLimit'
 import SyncModal from './SyncModal'
 import UpgradeModal from './UpgradeModal'
+import type { SubscriptionStatus } from '../api/user/subscription-status/route'
 
 type Session = NonNullable<ReturnType<typeof authClient.useSession>['data']>
 
 interface EditorProps {
   session: Session | null
+  subscriptionStatus: SubscriptionStatus | null
 }
 
-export default function Editor({ session }: EditorProps) {
+export default function Editor({ session, subscriptionStatus }: EditorProps) {
   const provider = useHocuspocusProvider()
   const status = useHocuspocusConnectionStatus()
   const users = useHocuspocusAwareness()
   const [showModal, setShowModal] = useState(false)
   const [showUpgradeModal, setShowUpgradeModal] = useState(false)
 
-  const tier = (session ? 'sync' : 'local') as TierName
+  const tier = (subscriptionStatus?.tier ?? (session ? 'sync' : 'local')) as TierName
   const limits = TIERS[tier]
 
   const editor = useEditor({
@@ -95,6 +97,9 @@ export default function Editor({ session }: EditorProps) {
               Upgrade
             </button>
           )}
+          {tier === 'full' && subscriptionStatus?.trialDaysLeft !== null && subscriptionStatus?.trialDaysLeft !== undefined && (
+            <span className="trial-badge">Trial: {subscriptionStatus.trialDaysLeft}d</span>
+          )}
           <button
             className={`btn-sync ${session ? 'btn-sync--in' : ''}`}
             onClick={() => setShowModal(true)}
@@ -120,7 +125,7 @@ export default function Editor({ session }: EditorProps) {
         <div className="editor-limit-banner">
           Your document has {originalWordCount.toLocaleString()} words — above your {limits.wordLimit.toLocaleString()}-word {tierLabel} plan.
           <button onClick={() => tier === 'sync' ? setShowUpgradeModal(true) : setShowModal(true)}>
-            Upgrade to keep writing
+            Upgrade to keep dumping.
           </button>
         </div>
       )}
@@ -135,7 +140,7 @@ export default function Editor({ session }: EditorProps) {
           ) : tier === 'sync' ? (
             <>
               You&apos;ve reached the {limits.wordLimit.toLocaleString()}-word limit.
-              <button onClick={() => setShowUpgradeModal(true)}>Upgrade to keep writing</button>
+              <button onClick={() => setShowUpgradeModal(true)}>Upgrade to keep dumping.</button>
             </>
           ) : (
             <>

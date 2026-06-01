@@ -1,6 +1,8 @@
 services:
   server:
     image: ghcr.io/thenafer02/dumpbook-web/server:latest
+    env_file:
+      - .env.production
     expose:
       - "1234"
     volumes:

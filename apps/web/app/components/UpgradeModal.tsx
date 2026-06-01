@@ -1,10 +1,93 @@
 'use client'
 
+import { useEffect, useRef, useState } from 'react'
+import { STATUS_CACHE_KEY, WS_TOKEN_CACHE_KEY } from '../page'
+
+type CheckoutState = 'idle' | 'loading' | 'checkout' | 'error' | 'success'
+
 interface UpgradeModalProps {
   onClose: () => void
 }
 
 export default function UpgradeModal({ onClose }: UpgradeModalProps) {
+  const [state, setState] = useState<CheckoutState>('idle')
+  const [checkoutUrl, setCheckoutUrl] = useState<string | null>(null)
+  const iframeRef = useRef<HTMLIFrameElement>(null)
+
+  // /success page sends postMessage when the iframe lands there after payment.
+  useEffect(() => {
+    const handler = (e: MessageEvent) => {
+      if (e.origin !== window.location.origin) return
+      if (e.data?.type === 'checkout_complete') setState('success')
+    }
+    window.addEventListener('message', handler)
+    return () => window.removeEventListener('message', handler)
+  }, [])
+
+  const handleUpgrade = async () => {
+    setState('loading')
+    try {
+      const res = await fetch('/api/user/checkout', { method: 'POST' })
+      if (!res.ok) throw new Error('Failed to create checkout session')
+      const { checkoutUrl } = await res.json() as { checkoutUrl: string }
+      setCheckoutUrl(checkoutUrl)
+      setState('checkout')
+    } catch {
+      setState('error')
+    }
+  }
+
+  if (state === 'checkout' && checkoutUrl) {
+    return (
+      <div className="checkout-modal">
+        <div className="checkout-modal-inner">
+          <div className="checkout-modal-header">
+            <button
+              className="modal-close"
+              style={{ position: 'static' }}
+              onClick={() => setState('idle')}
+              aria-label="Back"
+            >
+              ←
+            </button>
+            <p className="checkout-modal-title">Dumpbook Full — 7-day trial</p>
+            <div style={{ width: 28 }} />
+          </div>
+          <iframe
+            ref={iframeRef}
+            src={checkoutUrl}
+            className="checkout-iframe"
+            title="Checkout"
+            allow="payment"
+          />
+          <p className="checkout-fallback">
+            Having trouble?{' '}
+            <a href={checkoutUrl} target="_blank" rel="noreferrer">
+              Open in new tab →
+            </a>
+          </p>
+        </div>
+      </div>
+    )
+  }
+
+  if (state === 'success') {
+    return (
+      <div className="modal-overlay" onClick={onClose}>
+        <div className="modal-card" onClick={e => e.stopPropagation()}>
+          <button className="modal-close" onClick={onClose} aria-label="Close">×</button>
+          <p className="modal-title">You&apos;re all set!</p>
+          <p className="modal-body">Dumpbook Full is now active. All writing limits are lifted.</p>
+          <button className="btn-upgrade" onClick={() => {
+            sessionStorage.removeItem(STATUS_CACHE_KEY)
+            sessionStorage.removeItem(WS_TOKEN_CACHE_KEY)
+            window.location.reload()
+          }}>Start writing</button>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-card upgrade-card" onClick={e => e.stopPropagation()}>
@@ -48,8 +131,18 @@ export default function UpgradeModal({ onClose }: UpgradeModalProps) {
           </div>
         </div>
 
+        {state === 'error' && (
+          <p className="checkout-error">Something went wrong. Please try again.</p>
+        )}
+
         <p className="upgrade-hint">Start your 7-day trial.</p>
-        <button className="btn-upgrade-close" onClick={onClose}>Upgrade</button>
+        <button
+          className="btn-upgrade-close"
+          onClick={handleUpgrade}
+          disabled={state === 'loading'}
+        >
+          {state === 'loading' ? 'Loading…' : 'Upgrade'}
+        </button>
       </div>
     </div>
   )

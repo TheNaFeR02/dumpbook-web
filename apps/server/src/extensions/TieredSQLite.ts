@@ -1,21 +1,26 @@
 import { SQLite } from "@hocuspocus/extension-sqlite"
 import type { SQLiteConfiguration } from "@hocuspocus/extension-sqlite"
 import type { afterLoadDocumentPayload, afterUnloadDocumentPayload } from "@hocuspocus/server"
-import { TIERS, tierForDocument } from "../tiers.js"
+import { TIERS, tierForDocument, type TierName } from "../tiers.js"
 import { textFromYDoc, countWords, truncateYDocToLimit } from "../yjs.js"
 
-export class TieredSQLite extends SQLite {
-  // Tracks documents that were loaded over-limit and have been truncated in memory.
-  // Saves are blocked for these so the full content is never overwritten in SQLite.
-  private readonly overLimitDocs = new Set<string>()
+type TieredSQLiteConfig = Partial<SQLiteConfiguration> & {
+  documentTiers: Map<string, TierName>
+}
 
-  constructor(config: Partial<SQLiteConfiguration>) {
-    super(config)
+export class TieredSQLite extends SQLite {
+  private readonly overLimitDocs = new Set<string>()
+  private readonly documentTiers: Map<string, TierName>
+
+  constructor({ documentTiers, ...sqliteConfig }: TieredSQLiteConfig) {
+    super(sqliteConfig)
+    this.documentTiers = documentTiers
+
     const originalStore = this.configuration.store
     this.configuration.store = async (data) => {
       if (this.overLimitDocs.has(data.documentName)) return
 
-      const tier = tierForDocument(data.documentName)
+      const tier = this.documentTiers.get(data.documentName) ?? tierForDocument(data.documentName)
       const limits = TIERS[tier]
 
       if (isFinite(limits.charLimit) || isFinite(limits.wordLimit)) {
@@ -30,11 +35,14 @@ export class TieredSQLite extends SQLite {
     }
   }
 
-  // Called after the SQLite extension loads the document — truncate it before the
-  // client receives it so the client only ever sees tier-limited content.
-  async afterLoadDocument({ document, documentName }: afterLoadDocumentPayload): Promise<void> {
-    const tier = tierForDocument(documentName)
+  async afterLoadDocument(payload: afterLoadDocumentPayload): Promise<void> {
+    const { document, documentName, context } = payload
+    const tier =
+      (context?.tier as TierName | undefined) ??
+      this.documentTiers.get(documentName) ??
+      tierForDocument(documentName)
     const limits = TIERS[tier]
+
     if (!isFinite(limits.wordLimit) && !isFinite(limits.charLimit)) return
 
     const text = textFromYDoc(document)
@@ -47,5 +55,6 @@ export class TieredSQLite extends SQLite {
 
   async afterUnloadDocument({ documentName }: afterUnloadDocumentPayload): Promise<void> {
     this.overLimitDocs.delete(documentName)
+    this.documentTiers.delete(documentName)
   }
 }

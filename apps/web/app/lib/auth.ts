@@ -9,7 +9,7 @@ const dbPath = process.env.AUTH_DB_PATH ?? path.join(process.cwd(), "data", "aut
 
 const db = new Database(dbPath);
 
-const polarClient = new Polar({
+export const polarClient = new Polar({
     accessToken: env.POLAR_ACCESS_TOKEN,
     server: env.POLAR_SERVER,
 });
