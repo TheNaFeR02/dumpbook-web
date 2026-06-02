@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
-import { STATUS_CACHE_KEY, WS_TOKEN_CACHE_KEY } from '../page'
+import { INIT_CACHE_KEY } from '../page'
 
 function SuccessContent() {
   const params = useSearchParams()
@@ -14,8 +14,7 @@ function SuccessContent() {
       router.replace('/')
       return
     }
-    sessionStorage.removeItem(STATUS_CACHE_KEY)
-    sessionStorage.removeItem(WS_TOKEN_CACHE_KEY)
+    sessionStorage.removeItem(INIT_CACHE_KEY)
     if (window.parent !== window) {
       window.parent.postMessage({ type: 'checkout_complete' }, window.location.origin)
     }

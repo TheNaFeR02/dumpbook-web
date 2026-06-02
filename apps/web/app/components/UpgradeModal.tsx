@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { STATUS_CACHE_KEY, WS_TOKEN_CACHE_KEY } from '../page'
+import { INIT_CACHE_KEY } from '../page'
 
 type CheckoutState = 'idle' | 'loading' | 'checkout' | 'error' | 'success'
 
@@ -79,8 +79,7 @@ export default function UpgradeModal({ onClose }: UpgradeModalProps) {
           <p className="modal-title">You&apos;re all set!</p>
           <p className="modal-body">Dumpbook Full is now active. All writing limits are lifted.</p>
           <button className="btn-upgrade" onClick={() => {
-            sessionStorage.removeItem(STATUS_CACHE_KEY)
-            sessionStorage.removeItem(WS_TOKEN_CACHE_KEY)
+            sessionStorage.removeItem(INIT_CACHE_KEY)
             window.location.reload()
           }}>Start writing</button>
         </div>

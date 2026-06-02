@@ -1,18 +1,16 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   HocuspocusProviderWebsocketComponent,
   HocuspocusRoom,
 } from '@hocuspocus/provider-react'
 import Editor from './components/Editor'
 import { authClient } from './lib/auth-client'
-import type { SubscriptionStatus } from './api/user/subscription-status/route'
+import type { InitData } from './api/user/init/route'
 
-export const STATUS_CACHE_KEY = 'dumpbook_sub_status'
-export const WS_TOKEN_CACHE_KEY = 'dumpbook_ws_token'
-const STATUS_CACHE_TTL_MS = 60 * 60 * 1000      // 1 hour
-const WS_TOKEN_CACHE_TTL_MS = 50 * 60 * 1000    // 50 min (token valid 60 min)
+export const INIT_CACHE_KEY = 'dumpbook_init'
+const INIT_CACHE_TTL_MS = 50 * 60 * 1000    // 50 min (ws-token valid 60 min)
 
 function getCached<T>(key: string, userId: string | null, ttl: number): T | null {
   try {
@@ -31,41 +29,63 @@ function setCache(key: string, userId: string | null, data: unknown) {
   } catch {}
 }
 
+function perfMark(name: string) {
+  try { performance.mark(name) } catch {}
+}
+
+function perfMeasure(label: string, start: string, end: string) {
+  try {
+    const m = performance.measure(label, start, end)
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`[perf] ${label}: ${m.duration.toFixed(1)}ms`)
+    }
+  } catch {}
+}
+
 export default function Home() {
   const { data: session, isPending } = authClient.useSession()
   const [roomName, setRoomName] = useState<string | null>(null)
-  const [subscriptionStatus, setSubscriptionStatus] = useState<SubscriptionStatus | null>(null)
+  const [subscriptionStatus, setSubscriptionStatus] = useState<InitData['subscriptionStatus'] | null>(null)
   const [wsToken, setWsToken] = useState<string | null>(null)
+  const sessionResolvedRef = useRef(false)
+  const dataReadyRef = useRef(false)
+
+  useEffect(() => {
+    perfMark('db:page-mount')
+  }, [])
+
+  useEffect(() => {
+    if (isPending || sessionResolvedRef.current) return
+    sessionResolvedRef.current = true
+    perfMark('db:session-resolved')
+    perfMeasure('session-resolved', 'db:page-mount', 'db:session-resolved')
+  }, [isPending])
 
   useEffect(() => {
     if (isPending) return
     const userId = session?.user.id ?? null
 
-    const cachedStatus = getCached<SubscriptionStatus>(STATUS_CACHE_KEY, userId, STATUS_CACHE_TTL_MS)
-    const cachedToken = getCached<string>(WS_TOKEN_CACHE_KEY, userId, WS_TOKEN_CACHE_TTL_MS)
+    const cached = getCached<InitData>(INIT_CACHE_KEY, userId, INIT_CACHE_TTL_MS)
 
-    if (cachedStatus) setSubscriptionStatus(cachedStatus)
-    if (cachedToken) setWsToken(cachedToken)
-
-    if (!cachedStatus) {
-      fetch('/api/user/subscription-status')
-        .then(r => r.json() as Promise<SubscriptionStatus>)
-        .then(data => { setCache(STATUS_CACHE_KEY, userId, data); setSubscriptionStatus(data) })
-        .catch(() => {
-          setSubscriptionStatus({ tier: userId ? 'sync' : 'local', trialDaysLeft: null })
-        })
+    if (cached) {
+      if (process.env.NODE_ENV === 'development') console.log('[perf] init: cache hit')
+      setSubscriptionStatus(cached.subscriptionStatus)
+      setWsToken(cached.wsToken)
+      return
     }
 
-    if (!cachedToken) {
-      fetch('/api/user/ws-token')
-        .then(r => r.json() as Promise<{ token: string }>)
-        .then(({ token }) => { setCache(WS_TOKEN_CACHE_KEY, userId, token); setWsToken(token) })
-        .catch(() => {
-          // If ws-token fetch fails, generate a fallback — server will reject it and
-          // the client will retry on next page load. Better than blocking the editor forever.
-          setWsToken('unavailable')
-        })
-    }
+    if (process.env.NODE_ENV === 'development') console.log('[perf] init: cache miss, fetching')
+    fetch('/api/user/init')
+      .then(r => r.json() as Promise<InitData>)
+      .then(data => {
+        setCache(INIT_CACHE_KEY, userId, data)
+        setSubscriptionStatus(data.subscriptionStatus)
+        setWsToken(data.wsToken)
+      })
+      .catch(() => {
+        setSubscriptionStatus({ tier: userId ? 'sync' : 'local', trialDaysLeft: null })
+        setWsToken('unavailable')
+      })
   }, [isPending, session?.user.id])
 
   useEffect(() => {
@@ -81,6 +101,13 @@ export default function Home() {
       setRoomName(`anon-${anonId}`)
     }
   }, [session, isPending])
+
+  useEffect(() => {
+    if (!roomName || !subscriptionStatus || !wsToken || dataReadyRef.current) return
+    dataReadyRef.current = true
+    perfMark('db:data-ready')
+    perfMeasure('data-ready (blank screen duration)', 'db:page-mount', 'db:data-ready')
+  }, [roomName, subscriptionStatus, wsToken])
 
   if (!roomName || !subscriptionStatus || !wsToken) return null
 

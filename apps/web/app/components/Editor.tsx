@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import {
   useHocuspocusAwareness,
   useHocuspocusConnectionStatus,
@@ -51,6 +51,25 @@ export default function Editor({ session, subscriptionStatus }: EditorProps) {
       }
     },
   })
+
+  const wsConnectedRef = useRef(false)
+
+  useEffect(() => {
+    try {
+      const m = performance.measure('editor-mounted', 'db:page-mount', 'db:data-ready')
+      if (process.env.NODE_ENV === 'development') console.log(`[perf] editor mounted: ${m.duration.toFixed(1)}ms`)
+    } catch {}
+  }, [])
+
+  useEffect(() => {
+    if (status !== 'connected' || wsConnectedRef.current) return
+    wsConnectedRef.current = true
+    try {
+      performance.mark('db:ws-connected')
+      const m = performance.measure('ws-connected', 'db:page-mount', 'db:ws-connected')
+      if (process.env.NODE_ENV === 'development') console.log(`[perf] WebSocket connected: ${m.duration.toFixed(1)}ms`)
+    } catch {}
+  }, [status])
 
   // Observe the _meta Y.Map written by the server when it truncates an over-limit document.
   const [isTruncated, setIsTruncated] = useState(false)
