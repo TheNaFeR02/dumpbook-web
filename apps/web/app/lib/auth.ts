@@ -7,7 +7,7 @@ import env from "./env";
 
 const dbPath = process.env.AUTH_DB_PATH ?? path.join(process.cwd(), "data", "auth.sqlite");
 
-const db = new Database(dbPath);
+export const db = new Database(dbPath);
 
 export const polarClient = new Polar({
     accessToken: env.POLAR_ACCESS_TOKEN,
@@ -18,6 +18,12 @@ export const auth = betterAuth({
     database: db,
     baseURL: env.BETTER_AUTH_URL,
     trustedOrigins: [env.BETTER_AUTH_URL],
+    user: {
+        additionalFields: {
+            polarTier: { type: "string", required: false, returned: false, input: false },
+            polarTierAt: { type: "date", required: false, returned: false, input: false },
+        },
+    },
     socialProviders: {
         google: {
             clientId: env.GOOGLE_CLIENT_ID,
