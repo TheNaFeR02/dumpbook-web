@@ -37,7 +37,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={iAWriterDuospacefont.className}>
+    <html lang="en" className={iAWriterDuospacefont.className} suppressHydrationWarning>
+      <head>
+        <script
+          // Set the theme before first paint to avoid a flash of the wrong mode.
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem('dumpbook-theme');if(t!=='light'&&t!=='dark'){t=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}document.documentElement.setAttribute('data-theme',t);}catch(e){}})();`,
+          }}
+        />
+      </head>
       <body
         style={{
           height: "100dvh",

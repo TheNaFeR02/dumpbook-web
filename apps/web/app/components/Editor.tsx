@@ -30,6 +30,62 @@ export default function Editor({ session, subscriptionStatus }: EditorProps) {
   const users = useHocuspocusAwareness()
   const [showModal, setShowModal] = useState(false)
   const [showUpgradeModal, setShowUpgradeModal] = useState(false)
+  const [showSettings, setShowSettings] = useState(false)
+  const [portalLoading, setPortalLoading] = useState(false)
+  const [theme, setTheme] = useState<'light' | 'dark'>('light')
+  const settingsRef = useRef<HTMLDivElement>(null)
+
+  // The inline script in layout.tsx sets data-theme before paint; sync our
+  // state to it on mount so the toggle reflects the active theme.
+  useEffect(() => {
+    const current = document.documentElement.getAttribute('data-theme')
+    if (current === 'dark' || current === 'light') setTheme(current)
+  }, [])
+
+  const toggleTheme = () => {
+    setTheme((prev) => {
+      const next = prev === 'dark' ? 'light' : 'dark'
+      document.documentElement.setAttribute('data-theme', next)
+      try { localStorage.setItem('dumpbook-theme', next) } catch {}
+      return next
+    })
+  }
+
+  // Redirect to the Polar-hosted customer portal so the user can manage or
+  // cancel their subscription. The better-auth endpoint returns the URL as
+  // JSON (it doesn't issue an HTTP redirect), so we navigate to it ourselves.
+  const openPortal = async () => {
+    setPortalLoading(true)
+    try {
+      const res = await fetch('/api/auth/customer/portal', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: '{}',
+      })
+      const data = await res.json()
+      if (data?.url) {
+        window.location.href = data.url
+        return
+      }
+      console.error('[portal] no url in response', data)
+    } catch (err) {
+      console.error('[portal] failed to open customer portal', err)
+    } finally {
+      setPortalLoading(false)
+    }
+  }
+
+  // Close the settings dropdown on outside click.
+  useEffect(() => {
+    if (!showSettings) return
+    const onClick = (e: MouseEvent) => {
+      if (settingsRef.current && !settingsRef.current.contains(e.target as Node)) {
+        setShowSettings(false)
+      }
+    }
+    document.addEventListener('mousedown', onClick)
+    return () => document.removeEventListener('mousedown', onClick)
+  }, [showSettings])
 
   const tier = (subscriptionStatus?.tier ?? (session ? 'sync' : 'local')) as TierName
   const limits = TIERS[tier]
@@ -132,6 +188,13 @@ export default function Editor({ session, subscriptionStatus }: EditorProps) {
               Upgrade
             </button>
           )}
+          {tier === 'full' && (
+            <span className="full-crown" title="Dumpbook Full" aria-label="Dumpbook Full">
+              <svg className="upgrade-crown" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5zm0 2h14v2H5v-2z" />
+              </svg>
+            </span>
+          )}
           {tier === 'full' && subscriptionStatus?.trialDaysLeft !== null && subscriptionStatus?.trialDaysLeft !== undefined && (
             <span className="trial-badge">Trial: {subscriptionStatus.trialDaysLeft}d</span>
           )}
@@ -141,13 +204,54 @@ export default function Editor({ session, subscriptionStatus }: EditorProps) {
           >
             {session ? session.user.name.split(' ')[0] : 'Sync'}
           </button>
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 32 32">
-            <g className="gear-wrap">
-              <rect width="32" height="32" fill="transparent" />
-              <path fill="#b6b5b5" fillRule="evenodd" d="M13.003,29.003v-4h-2v2h-4v-2h-2v-4h2v-2h-4v-6h4v-2h-2v-4h2v-2h4v2h2v-4h6v4h2v-2h4v2h2v4h-2v2h4v6h-4v2h2v4h-2v2h-4v-2h-2v4H13.003z M20.003,20.003v-7.999h-8.001v7.999H20.003z" clipRule="evenodd" />
-              <path fill="#706d67" fillRule="evenodd" d="M13.003,23.003v-2h-2v-2h-2v-6h2v-2h2v-2h6v2h2v2h2v6h-2v2h-2v2H13.003z M19.003,19.003v-5.999h-6.001v5.999H19.003z" clipRule="evenodd" />
-            </g>
-          </svg>
+          <div className="settings-menu" ref={settingsRef}>
+            <button
+              type="button"
+              className="settings-trigger"
+              aria-label="Settings"
+              aria-haspopup="menu"
+              aria-expanded={showSettings}
+              onClick={() => setShowSettings((s) => !s)}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 32 32">
+                <g className="gear-wrap">
+                  <rect width="32" height="32" fill="transparent" />
+                  <path fill="#b6b5b5" fillRule="evenodd" d="M13.003,29.003v-4h-2v2h-4v-2h-2v-4h2v-2h-4v-6h4v-2h-2v-4h2v-2h4v2h2v-4h6v4h2v-2h4v2h2v4h-2v2h4v6h-4v2h2v4h-2v2h-4v-2h-2v4H13.003z M20.003,20.003v-7.999h-8.001v7.999H20.003z" clipRule="evenodd" />
+                  <path fill="#706d67" fillRule="evenodd" d="M13.003,23.003v-2h-2v-2h-2v-6h2v-2h2v-2h6v2h2v2h2v6h-2v2h-2v2H13.003z M19.003,19.003v-5.999h-6.001v5.999H19.003z" clipRule="evenodd" />
+                </g>
+              </svg>
+            </button>
+            {showSettings && (
+              <div className="settings-dropdown" role="menu">
+                {session ? (
+                  <button
+                    type="button"
+                    role="menuitem"
+                    className="settings-item"
+                    onClick={openPortal}
+                    disabled={portalLoading}
+                  >
+                    {portalLoading ? 'Opening…' : 'Subscription'}
+                  </button>
+                ) : (
+                  <span className="settings-empty">Sign in to manage your subscription</span>
+                )}
+                <div className="settings-divider" />
+                <button
+                  type="button"
+                  role="menuitemcheckbox"
+                  aria-checked={theme === 'dark'}
+                  className="settings-item settings-item--toggle"
+                  onClick={toggleTheme}
+                >
+                  <span>Dark mode</span>
+                  <span className={`theme-switch ${theme === 'dark' ? 'theme-switch--on' : ''}`} aria-hidden="true">
+                    <span className="theme-switch-knob" />
+                  </span>
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </header>
 
