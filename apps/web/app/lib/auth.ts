@@ -1,13 +1,11 @@
 import { betterAuth } from "better-auth";
-import Database from "better-sqlite3";
-import path from "path";
 import { polar, checkout, portal, webhooks } from "@polar-sh/better-auth";
 import { Polar } from "@polar-sh/sdk";
 import env from "./env";
+import { db } from "./db";
+import { subscriptionWebhookHandlers } from "./subscription";
 
-const dbPath = process.env.AUTH_DB_PATH ?? path.join(process.cwd(), "data", "auth.sqlite");
-
-export const db = new Database(dbPath);
+export { db };
 
 export const polarClient = new Polar({
     accessToken: env.POLAR_ACCESS_TOKEN,
@@ -18,12 +16,6 @@ export const auth = betterAuth({
     database: db,
     baseURL: env.BETTER_AUTH_URL,
     trustedOrigins: [env.BETTER_AUTH_URL],
-    user: {
-        additionalFields: {
-            polarTier: { type: "string", required: false, returned: false, input: false },
-            polarTierAt: { type: "date", required: false, returned: false, input: false },
-        },
-    },
     socialProviders: {
         google: {
             clientId: env.GOOGLE_CLIENT_ID,
@@ -49,6 +41,7 @@ export const auth = betterAuth({
                 portal(),
                 webhooks({
                     secret: env.POLAR_WEBHOOK_SECRET,
+                    ...subscriptionWebhookHandlers,
                 })
             ],
         })

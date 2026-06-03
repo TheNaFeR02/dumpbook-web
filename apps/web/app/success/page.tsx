@@ -14,10 +14,14 @@ function SuccessContent() {
       router.replace('/')
       return
     }
-    sessionStorage.removeItem(INIT_CACHE_KEY)
-    if (window.parent !== window) {
-      window.parent.postMessage({ type: 'checkout_complete' }, window.location.origin)
-    }
+    // Reconcile against Polar so the paid tier is live before the user heads
+    // back, in case the webhook hasn't landed yet. Then drop the cached init so
+    // the next load of "/" refetches the fresh tier.
+    fetch('/api/user/sync-subscription', { method: 'POST' })
+      .catch(() => {})
+      .finally(() => {
+        sessionStorage.removeItem(INIT_CACHE_KEY)
+      })
   }, [checkoutId, router])
 
   if (!checkoutId) return null

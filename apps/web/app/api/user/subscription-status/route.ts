@@ -17,6 +17,6 @@ export async function GET() {
     return NextResponse.json({ tier: 'local', trialDaysLeft: null } satisfies SubscriptionStatus)
   }
 
-  const { tier, trialDaysLeft } = await resolveUserTier(session.user.id)
+  const { tier, trialDaysLeft } = resolveUserTier(session.user.id)
   return NextResponse.json({ tier, trialDaysLeft } satisfies SubscriptionStatus)
 }

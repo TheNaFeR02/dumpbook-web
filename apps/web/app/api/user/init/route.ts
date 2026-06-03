@@ -20,7 +20,7 @@ export async function GET() {
     } satisfies InitData)
   }
 
-  const { tier, trialDaysLeft } = await resolveUserTier(session.user.id)
+  const { tier, trialDaysLeft } = resolveUserTier(session.user.id)
   return NextResponse.json({
     subscriptionStatus: { tier, trialDaysLeft },
     wsToken: signWsToken(tier),

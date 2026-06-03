@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   HocuspocusProviderWebsocketComponent,
   HocuspocusRoom,
@@ -29,37 +29,11 @@ function setCache(key: string, userId: string | null, data: unknown) {
   } catch {}
 }
 
-function perfMark(name: string) {
-  try { performance.mark(name) } catch {}
-}
-
-function perfMeasure(label: string, start: string, end: string) {
-  try {
-    const m = performance.measure(label, start, end)
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`[perf] ${label}: ${m.duration.toFixed(1)}ms`)
-    }
-  } catch {}
-}
-
 export default function Home() {
   const { data: session, isPending } = authClient.useSession()
   const [roomName, setRoomName] = useState<string | null>(null)
   const [subscriptionStatus, setSubscriptionStatus] = useState<InitData['subscriptionStatus'] | null>(null)
   const [wsToken, setWsToken] = useState<string | null>(null)
-  const sessionResolvedRef = useRef(false)
-  const dataReadyRef = useRef(false)
-
-  useEffect(() => {
-    perfMark('db:page-mount')
-  }, [])
-
-  useEffect(() => {
-    if (isPending || sessionResolvedRef.current) return
-    sessionResolvedRef.current = true
-    perfMark('db:session-resolved')
-    perfMeasure('session-resolved', 'db:page-mount', 'db:session-resolved')
-  }, [isPending])
 
   useEffect(() => {
     if (isPending) return
@@ -68,13 +42,11 @@ export default function Home() {
     const cached = getCached<InitData>(INIT_CACHE_KEY, userId, INIT_CACHE_TTL_MS)
 
     if (cached) {
-      if (process.env.NODE_ENV === 'development') console.log('[perf] init: cache hit')
       setSubscriptionStatus(cached.subscriptionStatus)
       setWsToken(cached.wsToken)
       return
     }
 
-    if (process.env.NODE_ENV === 'development') console.log('[perf] init: cache miss, fetching')
     fetch('/api/user/init')
       .then(r => r.json() as Promise<InitData>)
       .then(data => {
@@ -101,13 +73,6 @@ export default function Home() {
       setRoomName(`anon-${anonId}`)
     }
   }, [session, isPending])
-
-  useEffect(() => {
-    if (!roomName || !subscriptionStatus || !wsToken || dataReadyRef.current) return
-    dataReadyRef.current = true
-    perfMark('db:data-ready')
-    perfMeasure('data-ready (blank screen duration)', 'db:page-mount', 'db:data-ready')
-  }, [roomName, subscriptionStatus, wsToken])
 
   if (!roomName || !subscriptionStatus || !wsToken) return null
 

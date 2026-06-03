@@ -17,7 +17,6 @@ export async function POST() {
     customerName: session.user.name,
     successUrl: `${env.BETTER_AUTH_URL}/success?checkout_id={CHECKOUT_ID}`,
     returnUrl: env.BETTER_AUTH_URL,
-    embedOrigin: env.BETTER_AUTH_URL,
   })
 
   return NextResponse.json({ checkoutUrl: checkout.url })

@@ -413,67 +413,6 @@ html, body {
     padding: 0.2rem 0.45rem;
   }
 
-  .checkout-modal {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 101;
-    padding: 1rem;
-  }
-
-  .checkout-modal-inner {
-    position: relative;
-    background: #fff;
-    border-radius: 10px;
-    width: 100%;
-    max-width: 520px;
-    height: 85vh;
-    max-height: 700px;
-    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.2);
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
-
-  .checkout-modal-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0.625rem 1rem;
-    border-bottom: 1px solid #e5e7eb;
-    flex-shrink: 0;
-  }
-
-  .checkout-modal-title {
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: #374151;
-    margin: 0;
-  }
-
-  .checkout-iframe {
-    flex: 1;
-    width: 100%;
-    border: none;
-    min-height: 0;
-  }
-
-  .checkout-fallback {
-    font-size: 0.75rem;
-    color: #9ca3af;
-    text-align: center;
-    padding: 0.5rem 1rem;
-    border-top: 1px solid #f3f4f6;
-    flex-shrink: 0;
-  }
-
-  .checkout-fallback a {
-    color: #6b7280;
-  }
-
   .checkout-error {
     font-size: 0.8125rem;
     color: #dc2626;
