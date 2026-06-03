@@ -34,6 +34,47 @@ html, body {
     outline: none;
   }
 
+  /* Initial-sync loader: hide the (empty) editor until content arrives */
+  .editor-scroll-area .editor-content {
+    transition: opacity 0.2s ease;
+  }
+  .editor-scroll-area[data-loading] .editor-content {
+    opacity: 0;
+  }
+
+  .editor-loading {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    pointer-events: none;
+  }
+
+  .editor-spinner {
+    width: 22px;
+    height: 22px;
+    border: 2px solid #e5e7eb;
+    border-top-color: #9ca3af;
+    border-radius: 50%;
+    animation: editor-spin 0.7s linear infinite;
+  }
+
+  .editor-loading-text {
+    font-size: 0.8125rem;
+    color: #9ca3af;
+  }
+
+  @keyframes editor-spin {
+    to { transform: rotate(360deg); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .editor-spinner { animation-duration: 1.6s; }
+  }
+
   .navbar {
     display: flex;
     justify-content: space-between;

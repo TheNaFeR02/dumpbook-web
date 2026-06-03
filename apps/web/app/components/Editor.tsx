@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import {
   useHocuspocusAwareness,
   useHocuspocusConnectionStatus,
+  useHocuspocusEvent,
   useHocuspocusProvider,
 } from '@hocuspocus/provider-react'
 import { EditorContent, useEditor, useEditorState } from '@tiptap/react'
@@ -51,6 +52,21 @@ export default function Editor({ session, subscriptionStatus }: EditorProps) {
       }
     },
   })
+
+  // Show a loader until the initial document state has synced from the server,
+  // so the editor doesn't flash in empty before the content arrives.
+  const [synced, setSynced] = useState(() => provider.synced)
+  useHocuspocusEvent('synced', () => setSynced(true))
+
+  // Safety valve: never trap the user behind an infinite spinner if the synced
+  // event is missed or the connection stalls.
+  const [waitTimedOut, setWaitTimedOut] = useState(false)
+  useEffect(() => {
+    const t = setTimeout(() => setWaitTimedOut(true), 8000)
+    return () => clearTimeout(t)
+  }, [])
+
+  const isLoadingContent = !synced && status !== 'disconnected' && !waitTimedOut
 
   const wsConnectedRef = useRef(false)
 
@@ -135,8 +151,18 @@ export default function Editor({ session, subscriptionStatus }: EditorProps) {
         </div>
       </header>
 
-      <div className="editor-scroll-area" onClick={(e) => { if (e.target === e.currentTarget) editor?.commands.focus('end') }}>
+      <div
+        className="editor-scroll-area"
+        data-loading={isLoadingContent ? '' : undefined}
+        onClick={(e) => { if (e.target === e.currentTarget) editor?.commands.focus('end') }}
+      >
         <EditorContent editor={editor} className="editor-content" />
+        {isLoadingContent && (
+          <div className="editor-loading" role="status" aria-live="polite">
+            <span className="editor-spinner" aria-hidden="true" />
+            <span className="editor-loading-text">Loading your dumpbook…</span>
+          </div>
+        )}
         {isTruncated && <div className="editor-over-limit-gradient" aria-hidden="true" />}
       </div>
 
@@ -169,7 +195,7 @@ export default function Editor({ session, subscriptionStatus }: EditorProps) {
         </div>
       )}
 
-      {tier !== 'full' && (
+      {tier !== 'full' && !isLoadingContent && (
         <div className="content-limit-bar">
           <span className={displayWordCount >= limits.wordLimit * 0.9 || isTruncated ? 'limit-warning' : ''}>
             {displayWordCount.toLocaleString()} / {limits.wordLimit.toLocaleString()} words
