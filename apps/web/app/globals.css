@@ -85,6 +85,221 @@
     .editor-spinner { animation-duration: 1.6s; }
   }
 
+  /* Persistent document title — app identity, never cleared on typing */
+  .db-doc-head {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin: 0.75rem 0 0;
+    font-weight: 700;
+    font-size: 1.5rem;
+    line-height: 1.2;
+    color: #111111;
+    max-height: 2.6rem;
+    overflow: hidden;
+    transition: max-height 0.25s ease, margin 0.25s ease, opacity 0.2s ease;
+  }
+  .db-doc-head--collapsed {
+    max-height: 0;
+    margin-top: 0;
+    margin-bottom: 0;
+    opacity: 0;
+    pointer-events: none;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .db-doc-head { transition: none; }
+  }
+  .db-doc-icon {
+    width: 1.4rem;
+    height: 1.4rem;
+    flex: none;
+    opacity: 0.85;
+  }
+  .db-hash {
+    opacity: 0.3;
+  }
+  [data-theme="dark"] .db-doc-head {
+    color: #ededed;
+  }
+
+  /* First-run placeholder — purely visual, sits over the empty editor */
+  .editor-placeholder {
+    position: absolute;
+    inset: 0;
+    /* Offset by the editor's first-paragraph top margin (1em) so the welcome
+       line sits on the same baseline as the caret in the empty document. */
+    padding-top: 1em;
+    pointer-events: none;
+    user-select: none;
+    color: #111111;
+    line-height: 1.55;
+    animation: ph-fade-in 0.4s ease both;
+  }
+  .editor-placeholder p { margin: 0; }
+
+  .ph-tagline {
+    opacity: 0.4;
+    margin-bottom: 1.5rem !important;
+  }
+
+  .ph-loop {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+    margin-bottom: 1.5rem;
+  }
+  .ph-loop-row {
+    display: grid;
+    grid-template-columns: 1.4rem 5rem 1fr;
+    align-items: baseline;
+    opacity: 0.5;
+  }
+  .ph-loop-icon {
+    font-weight: 700;
+    opacity: 0.7;
+  }
+  .ph-loop-name { font-weight: 700; }
+  .ph-loop-text { opacity: 0.85; }
+
+  .ph-tip {
+    opacity: 0.45;
+    margin-bottom: 1.5rem !important;
+  }
+  .ph-tip kbd {
+    font: inherit;
+    font-size: 0.85em;
+    padding: 0.05rem 0.35rem;
+    border: 1px solid currentColor;
+    border-radius: 4px;
+    opacity: 0.8;
+  }
+
+  .ph-sample {
+    opacity: 0.42;
+  }
+  .ph-sample-label {
+    opacity: 0.7;
+    margin-bottom: 0.4rem !important;
+  }
+  .ph-more {
+    opacity: 0.7;
+    font-style: italic;
+    margin-top: 0.4rem !important;
+  }
+
+  .ph-start {
+    opacity: 0.35;
+    margin-top: 1.5rem !important;
+    font-style: italic;
+  }
+
+  [data-theme="dark"] .editor-placeholder { color: #ededed; }
+
+  @keyframes ph-fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .editor-placeholder { animation: none; }
+  }
+
+  /* ── First-run placeholder v2: annotated note (Andrej-style diagram) ── */
+  .phd {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    user-select: none;
+    animation: ph-fade-in 0.4s ease both;
+  }
+  .phd-stage {
+    position: relative;
+    width: 100%;
+    max-width: 440px;
+    opacity: 0.5;
+  }
+
+  /* The sample note card */
+  .phd-card {
+    border: 2px solid #1f1f1f;
+    border-radius: 18px;
+    padding: 1.1rem 1.3rem;
+    color: #1f1f1f;
+    opacity: 0.65;
+    line-height: 1.5;
+    font-size: 0.92rem;
+  }
+  .phd-card p { margin: 0; }
+  .phd-gap { height: 0.7rem; }
+  .phd-todo { font-weight: 700; }
+  .phd-item { padding-left: 0.2rem; }
+  .phd-check { color: #2e9e4f; font-weight: 700; }
+  .phd-done { color: inherit; }
+  .phd-link { color: #c2761a; text-decoration: underline; }
+
+  /* Hand-drawn annotations */
+  .phd-anno {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    gap: 0.2rem;
+    font-family: 'Bradley Hand', 'Segoe Print', 'Comic Sans MS', cursive;
+    font-size: 1.15rem;
+    color: #d6453d;
+    opacity: 0.85;
+  }
+  .phd-anno svg { overflow: visible; }
+
+  .phd-append {
+    top: -2.4rem;
+    right: -1rem;
+    transform: rotate(-4deg);
+  }
+  .phd-append svg { width: 56px; height: 30px; }
+
+  .phd-gravity {
+    left: -5.5rem;
+    top: 1.5rem;
+    flex-direction: column;
+    gap: 0.1rem;
+  }
+  .phd-gravity svg { width: 26px; height: 210px; }
+
+  .phd-review {
+    right: -6rem;
+    top: 1rem;
+    flex-direction: column;
+    gap: 0.1rem;
+  }
+  .phd-review svg { width: 62px; height: 200px; }
+
+  .phd-start {
+    margin: 1rem 0 0;
+    text-align: center;
+    font-style: italic;
+    font-size: 0.85rem;
+    color: #1f1f1f;
+    opacity: 0.4;
+  }
+
+  /* Dark mode */
+  [data-theme="dark"] .phd-card { border-color: #d8d8d8; color: #e6e6e6; }
+  [data-theme="dark"] .phd-start { color: #e6e6e6; }
+  [data-theme="dark"] .phd-anno { color: #f0857c; }
+  [data-theme="dark"] .phd-check { color: #59c97a; }
+  [data-theme="dark"] .phd-link { color: #e0a052; }
+
+  /* Tight screens: drop the side annotations, keep the note legible */
+  @media (max-width: 600px) {
+    .phd-gravity, .phd-review { display: none; }
+    .phd-stage { max-width: 88%; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .phd { animation: none; }
+  }
+
   .navbar {
     display: flex;
     justify-content: space-between;
@@ -325,16 +540,6 @@
 
   .limit-warning {
     color: #f59e0b;
-  }
-
-  /* Gradient overlay shown when the server has truncated an over-limit document */
-  .editor-over-limit-gradient {
-    height: 200px;
-    margin-top: -200px;
-    position: relative;
-    z-index: 1;
-    background: linear-gradient(to bottom, transparent 0%, rgba(255, 255, 255, 0.7) 50%, #fff 100%);
-    pointer-events: none;
   }
 
   /* Word limit reached banner */
@@ -696,9 +901,6 @@
     color: #3f3f46;
   }
 
-  [data-theme="dark"] .editor-over-limit-gradient {
-    background: linear-gradient(to bottom, transparent 0%, rgba(22, 22, 24, 0.7) 50%, #161618 100%);
-  }
   [data-theme="dark"] .editor-limit-banner {
     background: #2a2410;
     border-top-color: #5c4a14;

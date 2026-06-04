@@ -15,6 +15,9 @@ import { TIERS, type TierName } from '../lib/tiers'
 import { ContentLimit, type ContentLimitStorage } from '../lib/extensions/ContentLimit'
 import SyncModal from './SyncModal'
 import UpgradeModal from './UpgradeModal'
+// Two placeholder approaches live side by side; swap this import to switch.
+import EditorPlaceholder from './EditorPlaceholder'           // v1: arrow legend
+// import EditorPlaceholder from './EditorPlaceholderDiagram'        // v2: annotated note
 import type { SubscriptionStatus } from '../api/user/subscription-status/route'
 
 type Session = NonNullable<ReturnType<typeof authClient.useSession>['data']>
@@ -33,6 +36,9 @@ export default function Editor({ session, subscriptionStatus }: EditorProps) {
   const [showSettings, setShowSettings] = useState(false)
   const [portalLoading, setPortalLoading] = useState(false)
   const [theme, setTheme] = useState<'light' | 'dark'>('light')
+  // Collapse the document title once the user scrolls into the text, so the
+  // editor reclaims that vertical space. Hysteresis avoids threshold flicker.
+  const [titleCollapsed, setTitleCollapsed] = useState(false)
   const settingsRef = useRef<HTMLDivElement>(null)
 
   // The inline script in layout.tsx sets data-theme before paint; sync our
@@ -105,6 +111,7 @@ export default function Editor({ session, subscriptionStatus }: EditorProps) {
       return {
         wordCount: storage?.contentLimit.wordCount ?? 0,
         charCount: storage?.contentLimit.charCount ?? 0,
+        isEmpty: ctx.editor?.isEmpty ?? true,
       }
     },
   })
@@ -143,37 +150,13 @@ export default function Editor({ session, subscriptionStatus }: EditorProps) {
     } catch {}
   }, [status])
 
-  // Observe the _meta Y.Map written by the server when it truncates an over-limit document.
-  const [isTruncated, setIsTruncated] = useState(false)
-  const [originalWordCount, setOriginalWordCount] = useState(0)
-  const [originalCharCount, setOriginalCharCount] = useState(0)
-
-  useEffect(() => {
-    const meta = provider.document.getMap<number | boolean>('_meta')
-    const sync = () => {
-      const truncated = !!meta.get('truncated')
-      setIsTruncated(truncated)
-      setOriginalWordCount((meta.get('originalWordCount') as number) ?? 0)
-      setOriginalCharCount((meta.get('originalCharCount') as number) ?? 0)
-    }
-    meta.observe(sync)
-    sync()
-    return () => meta.unobserve(sync)
-  }, [provider.document])
-
-  // Make the editor read-only when the document has been server-truncated.
-  useEffect(() => {
-    if (!editor) return
-    editor.setEditable(!isTruncated)
-  }, [editor, isTruncated])
-
+  // Over-limit state is derived entirely client-side from the current tier.
+  // The server never truncates or flags the document, so an upgrade/downgrade
+  // simply takes effect on the next connection — no stale server state to clear.
+  // Editing stays possible while over limit: the ContentLimit extension blocks
+  // additions but allows deletions, so the user can trim back under their cap.
   const isAtLimit =
     counts.wordCount >= limits.wordLimit || counts.charCount >= limits.charLimit
-
-  const displayWordCount = isTruncated ? originalWordCount : counts.wordCount
-  const displayCharCount = isTruncated ? originalCharCount : counts.charCount
-
-  const tierLabel = tier === 'sync' ? 'Sync' : tier === 'local' ? 'Local' : 'Full'
 
   return (
     <div className="editor-wrapper">
@@ -255,31 +238,45 @@ export default function Editor({ session, subscriptionStatus }: EditorProps) {
         </div>
       </header>
 
+      {/* Document title — collapses on scroll so the editor reclaims the space. */}
+      <div className={`db-doc-head ${titleCollapsed ? 'db-doc-head--collapsed' : ''}`}>
+        <svg
+          className="db-doc-icon"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+          <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+        </svg>
+        {/* <span className="db-hash" aria-hidden="true">#</span> */}
+        <span>Dumpbook</span>
+      </div>
+
       <div
         className="editor-scroll-area"
         data-loading={isLoadingContent ? '' : undefined}
         onClick={(e) => { if (e.target === e.currentTarget) editor?.commands.focus('end') }}
+        onScroll={(e) => {
+          const top = e.currentTarget.scrollTop
+          setTitleCollapsed((prev) => (prev ? top > 8 : top > 28))
+        }}
       >
         <EditorContent editor={editor} className="editor-content" />
+        {!isLoadingContent && counts.isEmpty && <EditorPlaceholder />}
         {isLoadingContent && (
           <div className="editor-loading" role="status" aria-live="polite">
             <span className="editor-spinner" aria-hidden="true" />
             <span className="editor-loading-text">Loading your dumpbook…</span>
           </div>
         )}
-        {isTruncated && <div className="editor-over-limit-gradient" aria-hidden="true" />}
       </div>
 
-      {isTruncated && (
-        <div className="editor-limit-banner">
-          Your document has {originalWordCount.toLocaleString()} words — above your {limits.wordLimit.toLocaleString()}-word {tierLabel} plan.
-          <button onClick={() => tier === 'sync' ? setShowUpgradeModal(true) : setShowModal(true)}>
-            Upgrade to keep dumping.
-          </button>
-        </div>
-      )}
-
-      {!isTruncated && isAtLimit && (
+      {isAtLimit && (
         <div className="editor-limit-banner">
           {tier === 'local' ? (
             <>
@@ -301,12 +298,12 @@ export default function Editor({ session, subscriptionStatus }: EditorProps) {
 
       {tier !== 'full' && !isLoadingContent && (
         <div className="content-limit-bar">
-          <span className={displayWordCount >= limits.wordLimit * 0.9 || isTruncated ? 'limit-warning' : ''}>
-            {displayWordCount.toLocaleString()} / {limits.wordLimit.toLocaleString()} words
+          <span className={counts.wordCount >= limits.wordLimit * 0.9 ? 'limit-warning' : ''}>
+            {counts.wordCount.toLocaleString()} / {limits.wordLimit.toLocaleString()} words
           </span>
           <span className="limit-separator">·</span>
-          <span className={displayCharCount >= limits.charLimit * 0.9 || isTruncated ? 'limit-warning' : ''}>
-            {displayCharCount.toLocaleString()} / {limits.charLimit.toLocaleString()} characters
+          <span className={counts.charCount >= limits.charLimit * 0.9 ? 'limit-warning' : ''}>
+            {counts.charCount.toLocaleString()} / {limits.charLimit.toLocaleString()} characters
           </span>
         </div>
       )}
