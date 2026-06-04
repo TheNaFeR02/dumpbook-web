@@ -176,9 +176,6 @@ export default function Editor({ session, subscriptionStatus }: EditorProps) {
               </svg>
             </span>
           )}
-          {tier === 'full' && subscriptionStatus?.trialDaysLeft !== null && subscriptionStatus?.trialDaysLeft !== undefined && (
-            <span className="trial-badge">Trial: {subscriptionStatus.trialDaysLeft}d</span>
-          )}
           <button
             className={`btn-sync ${session ? 'btn-sync--in' : ''}`}
             onClick={() => setShowModal(true)}
@@ -307,7 +304,12 @@ export default function Editor({ session, subscriptionStatus }: EditorProps) {
       )}
 
       {showModal && (
-        <SyncModal session={session} onClose={() => setShowModal(false)} />
+        <SyncModal
+          session={session}
+          tier={tier}
+          trialDaysLeft={subscriptionStatus?.trialDaysLeft ?? null}
+          onClose={() => setShowModal(false)}
+        />
       )}
       {showUpgradeModal && (
         <UpgradeModal onClose={() => setShowUpgradeModal(false)} />
