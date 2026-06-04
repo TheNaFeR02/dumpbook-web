@@ -15,9 +15,7 @@ import { TIERS, type TierName } from '../lib/tiers'
 import { ContentLimit, type ContentLimitStorage } from '../lib/extensions/ContentLimit'
 import SyncModal from './SyncModal'
 import UpgradeModal from './UpgradeModal'
-// Two placeholder approaches live side by side; swap this import to switch.
-import EditorPlaceholder from './EditorPlaceholder'           // v1: arrow legend
-// import EditorPlaceholder from './EditorPlaceholderDiagram'        // v2: annotated note
+import EditorPlaceholder from './EditorPlaceholder'
 import type { SubscriptionStatus } from '../api/user/subscription-status/route'
 
 type Session = NonNullable<ReturnType<typeof authClient.useSession>['data']>

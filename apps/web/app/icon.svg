@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="797.22162"
+   height="796.98035"
+   viewBox="0 0 797.22162 796.98035"
+   version="1.1"
+   xmlns="http://www.w3.org/2000/svg">
+  <!-- Theme-adaptive favicon: the silhouette follows the OS color scheme so the
+       icon stays legible on both light and dark browser tab bars. The yellow
+       accents (the "append / gravity" lines + arrow) stay constant. -->
+  <style>
+    .fg { fill: #0a0a0a; }
+    @media (prefers-color-scheme: dark) { .fg { fill: #f5f5f5; } }
+  </style>
+  <g transform="translate(10199.19,-2823.4682)">
+    <g transform="translate(-1095.6039,10.892311)">
+      <g transform="translate(0,-10.144481)">
+        <g transform="translate(-4795.0754,2639.0804)">
+          <rect
+            class="fg"
+            width="796.53589"
+            height="796.53589"
+            x="-4307.8242"
+            y="184.08437"
+            ry="398.26794"
+            rx="398.26794" />
+          <path
+            class="fg"
+            transform="translate(-111.87176,-197.42076)"
+            d="m -4022.9548,381.06064 h 222.8797 v 796.56306 h -329.0528 c -37.2849,0 -67.5103,-30.2254 -67.5103,-67.5103 V 565.90701 c 0,-19.74195 16.2736,-35.31505 35.4091,-39.97592 57.4986,-14.00503 101.9418,-61.34956 111.6924,-120.39642 2.2095,-13.38043 13.0051,-24.47403 26.5819,-24.47403 z" />
+        </g>
+        <rect
+          style="fill:#eab308;fill-opacity:0.25098;stroke:none;stroke-width:14.3119;paint-order:normal"
+          width="346.53763"
+          height="44.664085"
+          x="-8916.5801"
+          y="3460.5674"
+          ry="22.332043" />
+        <rect
+          style="fill:#eab308;fill-opacity:0.501961;stroke:none;stroke-width:14.3119;paint-order:normal"
+          width="346.53763"
+          height="44.664085"
+          x="-8916.5801"
+          y="3364.3386"
+          ry="22.332043" />
+        <g
+          transform="translate(-5716.4842,1204.5698)"
+          style="fill:#eab308;fill-opacity:1;stroke:#eab308;stroke-width:10">
+          <path
+            style="fill:#eab308;fill-opacity:1;fill-rule:evenodd;stroke:#eab308;stroke-width:10;stroke-linecap:round;stroke-linejoin:round"
+            d="m -3026.041,1731.1445 a 17.51195,17.51195 0 0 0 -17.5996,17.4258 l -1.1739,234.459 a 17.51195,17.51195 0 0 0 17.4239,17.5996 17.51195,17.51195 0 0 0 17.5996,-17.4238 l 1.1738,-234.461 a 17.51195,17.51195 0 0 0 -17.4238,-17.5996 z" />
+          <path
+            style="fill:#eab308;fill-opacity:1;stroke:#eab308;stroke-width:10;stroke-linecap:round"
+            d="m -3136.3398,1869.3379 c -2.9733,0.781 -5.6887,2.331 -7.8731,4.4941 -6.873,6.8048 -6.928,17.8929 -0.123,24.7657 l 100.5038,101.5149 a 23.255251,23.255251 0.28677377 0 0 32.8874,0.1647 l 101.515,-100.5039 c 6.8729,-6.8048 6.928,-17.8928 0.1231,-24.7656 -6.8048,-6.873 -17.8929,-6.928 -24.7657,-0.123 l -93.1504,92.2226 -92.2246,-93.1523 c -4.4018,-4.4462 -10.8412,-6.2062 -16.8925,-4.6172 z" />
+        </g>
+        <rect
+          style="fill:#eab308;fill-opacity:1;stroke:none;stroke-width:14.3119;paint-order:normal"
+          width="346.53763"
+          height="44.664085"
+          x="-8916.5752"
+          y="3268.1096"
+          ry="22.332043" />
+      </g>
+    </g>
+  </g>
+</svg>
