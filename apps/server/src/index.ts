@@ -38,11 +38,8 @@ function verifyWsToken(token: string): { tier: TierName } | null {
   }
 }
 
-const documentTiers = new Map<string, TierName>()
-
 const tieredSQLite = new TieredSQLite({
   database: resolve(dataDir, "db.sqlite"),
-  documentTiers,
 })
 
 const server = new Server<AppContext>({
@@ -51,15 +48,12 @@ const server = new Server<AppContext>({
 
   async onAuthenticate({ documentName, token, context }) {
     if (!HOCUSPOCUS_SECRET) {
-      const tier: TierName = documentName.startsWith("user-") ? "sync" : "local"
-      context.tier = tier
-      documentTiers.set(documentName, tier)
+      context.tier = documentName.startsWith("user-") ? "sync" : "local"
       return
     }
     const payload = verifyWsToken(token)
     if (!payload) throw new Error("Invalid or expired ws-token")
     context.tier = payload.tier
-    documentTiers.set(documentName, payload.tier)
   },
 
   async onConnect() {
