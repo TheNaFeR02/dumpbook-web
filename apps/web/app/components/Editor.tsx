@@ -50,7 +50,7 @@ export default function Editor({ session, subscriptionStatus }: EditorProps) {
     setTheme((prev) => {
       const next = prev === 'dark' ? 'light' : 'dark'
       document.documentElement.setAttribute('data-theme', next)
-      try { localStorage.setItem('dumpbook-theme', next) } catch {}
+      try { localStorage.setItem('dumpbook-theme', next) } catch { }
       return next
     })
   }
@@ -135,7 +135,7 @@ export default function Editor({ session, subscriptionStatus }: EditorProps) {
     try {
       const m = performance.measure('editor-mounted', 'db:page-mount', 'db:data-ready')
       if (process.env.NODE_ENV === 'development') console.log(`[perf] editor mounted: ${m.duration.toFixed(1)}ms`)
-    } catch {}
+    } catch { }
   }, [])
 
   useEffect(() => {
@@ -145,7 +145,7 @@ export default function Editor({ session, subscriptionStatus }: EditorProps) {
       performance.mark('db:ws-connected')
       const m = performance.measure('ws-connected', 'db:page-mount', 'db:ws-connected')
       if (process.env.NODE_ENV === 'development') console.log(`[perf] WebSocket connected: ${m.duration.toFixed(1)}ms`)
-    } catch {}
+    } catch { }
   }, [status])
 
   // Over-limit state is derived entirely client-side from the current tier.
@@ -247,6 +247,8 @@ export default function Editor({ session, subscriptionStatus }: EditorProps) {
         >
           <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
           <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+          <text x="12" y="8" fontFamily="var(--font-duospace)" fontSize="4" fontWeight="bold" textAnchor="middle" fill="currentColor" stroke="none">Dump</text>
+          <text x="12" y="14" fontFamily="var(--font-duospace)" fontSize="4" fontWeight="normal" fontStyle="italic" textAnchor="middle" fill="currentColor" stroke="none">book</text>
         </svg>
         {/* <span className="db-hash" aria-hidden="true">#</span> */}
         <span>Dumpbook</span>

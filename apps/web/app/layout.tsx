@@ -30,6 +30,7 @@ const iAWriterDuospacefont = localFont({
       style: 'italic',
     },
   ],
+  variable: '--font-duospace',
 })
 export default function RootLayout({
   children,
@@ -37,7 +38,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={iAWriterDuospacefont.className} suppressHydrationWarning>
+    <html lang="en" className={`${iAWriterDuospacefont.className} ${iAWriterDuospacefont.variable}`} suppressHydrationWarning>
       <head>
         <script
           // Set the theme before first paint to avoid a flash of the wrong mode.
