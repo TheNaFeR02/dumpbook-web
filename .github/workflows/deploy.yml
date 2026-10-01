@@ -29,6 +29,11 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Check for duplicate dependencies
+        # Duplicate prosemirror-* copies break the editor at runtime
+        # ("multiple versions of prosemirror-model were loaded").
+        run: pnpm dedupe --check
+
       - name: Generate schema SQL
         env:
           NEXT_PUBLIC_HOCUSPOCUS_URL: ws://localhost:1234
@@ -43,7 +48,7 @@ jobs:
         run: |
           cd apps/web
           # Keep the CLI version equal to the better-auth version in apps/web/package.json.
-          NODE_PATH=../../node_modules pnpm dlx auth@1.6.11 generate --output /tmp/schema.sql
+          NODE_PATH=../../node_modules pnpm dlx auth@1.6.33 generate --output /tmp/schema.sql
           echo "SCHEMA_B64=$(base64 -w 0 /tmp/schema.sql)" >> $GITHUB_ENV
 
       - name: Set lowercase image prefix

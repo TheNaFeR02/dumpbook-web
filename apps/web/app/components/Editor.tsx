@@ -96,6 +96,8 @@ export default function Editor({ session, subscriptionStatus }: EditorProps) {
   const limits = TIERS[tier]
 
   const editor = useEditor({
+    // Rendered client-side only; skip the first render to avoid SSR hydration mismatches.
+    immediatelyRender: false,
     extensions: [
       StarterKit.configure({ undoRedo: false }),
       Collaboration.configure({ document: provider.document }),
@@ -116,7 +118,7 @@ export default function Editor({ session, subscriptionStatus }: EditorProps) {
         isEmpty: ctx.editor?.isEmpty ?? true,
       }
     },
-  })
+  }) ?? { wordCount: 0, charCount: 0, isEmpty: true }
 
   // Show a loader until the initial document state has synced from the server,
   // so the editor doesn't flash in empty before the content arrives.
