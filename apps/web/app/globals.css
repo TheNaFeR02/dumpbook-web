@@ -172,10 +172,11 @@
     .content-limit-bar { flex-wrap: wrap; }
     /* Own row with a reserved height, so focusing dated/undated lines never resizes the editor. */
     .line-stamp {
-      display: block;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
       flex-basis: 100%;
-      min-height: 1.2em;
-      text-align: right;
+      min-height: 1.6em;
       white-space: nowrap;
     }
   }
@@ -216,11 +217,12 @@
   [data-theme="dark"] .move-top-handle:hover .move-top-glyph { border-color: #3f3f46; color: #e4e4e7; }
   @media (max-width: 1099px) { .move-top-handle { display: none; } }
 
-  .move-top-btn { display: none; }
+  /* Phone/narrow bottom bar: undo/redo on the left, line stamp + ↑ Top on the right. */
+  .history-btns, .move-top-btn { display: none; }
   @media (max-width: 1099px) {
-    .move-top-btn {
-      display: inline;
-      margin-left: 0.9rem;
+    .history-btns { display: flex; gap: 0.4rem; margin-right: auto; }
+    .move-top-btn { display: inline; margin-left: 0.9rem; }
+    .bar-btn {
       padding: 0.15rem 0.5rem;
       border: 1px solid #d1d5db;
       border-radius: 4px;
@@ -228,8 +230,12 @@
       color: inherit;
       font: inherit;
       cursor: pointer;
+      touch-action: manipulation;
     }
-    [data-theme="dark"] .move-top-btn { border-color: #3f3f46; }
+    .bar-btn:disabled { opacity: 0.4; cursor: default; }
+    .history-btns .bar-btn { min-width: 2rem; font-size: 0.95rem; line-height: 1; padding: 0.2rem 0.45rem; }
+    .line-stamp-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+    [data-theme="dark"] .bar-btn { border-color: #3f3f46; }
   }
 
   .moved-toast {

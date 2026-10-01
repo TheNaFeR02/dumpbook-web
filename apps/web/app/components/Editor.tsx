@@ -138,6 +138,15 @@ export default function Editor({ session, subscriptionStatus }: EditorProps) {
     },
   }) ?? null
 
+  // Undo/redo availability for the phone buttons (no ⌘Z on touch keyboards).
+  const history = useEditorState({
+    editor,
+    selector: (ctx) => ({
+      canUndo: ctx.editor?.can().undo() ?? false,
+      canRedo: ctx.editor?.can().redo() ?? false,
+    }),
+  }) ?? { canUndo: false, canRedo: false }
+
   // "Moved to top · Undo" toast, shown for any move (shortcut, margin handle,
   // bottom-bar button) by watching for the move transaction.
   const [movedToast, setMovedToast] = useState(false)
@@ -347,10 +356,34 @@ export default function Editor({ session, subscriptionStatus }: EditorProps) {
             </>
           )}
           <span className="line-stamp" aria-live="off">
-            {currentStamp}
+            <span className="history-btns">
+              <button
+                type="button"
+                className="bar-btn"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => editor?.commands.undo()}
+                disabled={!history.canUndo}
+                aria-label="Undo"
+                title="Undo"
+              >
+                ↶
+              </button>
+              <button
+                type="button"
+                className="bar-btn"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => editor?.commands.redo()}
+                disabled={!history.canRedo}
+                aria-label="Redo"
+                title="Redo"
+              >
+                ↷
+              </button>
+            </span>
+            <span className="line-stamp-text">{currentStamp}</span>
             <button
               type="button"
-              className="move-top-btn"
+              className="bar-btn move-top-btn"
               // Keep focus in the editor so the phone keyboard stays open.
               onMouseDown={(e) => e.preventDefault()}
               onClick={() => editor?.commands.moveToTop()}
