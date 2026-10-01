@@ -127,6 +127,17 @@ jobs:
             echo "${{ env.SCHEMA_B64 }}" | base64 -d | \
               sqlite3 /var/lib/docker/volumes/dumpbook-web_web-data/_data/auth.sqlite
 
+      - name: Copy compose and nginx config to VPS
+        # The VPS must run exactly what's in the repo; a hand-edited copy there
+        # previously drifted (the server service lost its env_file).
+        uses: appleboy/scp-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          source: docker-compose.prod.yml,nginx/nginx.conf
+          target: dumpbook-web
+
       - name: Deploy to VPS
         uses: appleboy/ssh-action@v1
         with:
@@ -142,4 +153,6 @@ jobs:
             trap 'docker logout ghcr.io >/dev/null 2>&1 || true' EXIT
             docker compose -f docker-compose.prod.yml pull
             docker compose -f docker-compose.prod.yml up -d
+            # Pick up nginx.conf changes even when the container wasn't recreated.
+            docker compose -f docker-compose.prod.yml exec -T nginx nginx -s reload
             docker image prune -f
