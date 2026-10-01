@@ -186,42 +186,41 @@
   }
 
   /* Move to top: desktop margin handle, phone bottom-bar button, toast */
-  /* The button's hit area reaches right up to the text (no gap to cross);
-     only the inner glyph is drawn. */
-  .move-top-handle {
+  /* Desktop note controls in the left margin. The container's hit area
+     reaches right up to the text (no gap to cross); only the glyphs are drawn. */
+  .note-handle {
     position: fixed;
     transform: translateX(-100%);
     display: flex;
     align-items: flex-start;
-    justify-content: flex-start;
-    width: 2.6rem;
+    gap: 0.15rem;
     height: 1.6rem;
-    padding: 0 0 0 0.4rem;
-    border: 0;
-    background: transparent;
-    font: inherit;
-    cursor: pointer;
+    padding: 0 0.4rem 0 0.5rem;
     z-index: 5;
   }
-  .move-top-glyph {
+  .note-handle-btn {
     display: grid;
     place-items: center;
     width: 1.4rem;
     height: 1.4rem;
+    padding: 0;
     border: 1px solid transparent;
     border-radius: 4px;
+    background: transparent;
     color: #9ca3af;
+    font: inherit;
     font-size: 0.8rem;
+    cursor: pointer;
   }
-  .move-top-handle:hover .move-top-glyph { border-color: #d1d5db; color: #111; }
-  [data-theme="dark"] .move-top-handle:hover .move-top-glyph { border-color: #3f3f46; color: #e4e4e7; }
-  @media (max-width: 1099px) { .move-top-handle { display: none; } }
+  .note-handle-btn:hover { border-color: #d1d5db; color: #111; }
+  [data-theme="dark"] .note-handle-btn:hover { border-color: #3f3f46; color: #e4e4e7; }
+  @media (max-width: 1099px) { .note-handle { display: none; } }
 
   /* Phone/narrow bottom bar: undo/redo on the left, line stamp + ↑ Top on the right. */
-  .history-btns, .move-top-btn { display: none; }
+  .history-btns, .note-btns { display: none; }
   @media (max-width: 1099px) {
     .history-btns { display: flex; gap: 0.4rem; margin-right: auto; }
-    .move-top-btn { display: inline; margin-left: 0.9rem; }
+    .note-btns { display: flex; gap: 0.4rem; margin-left: 0.9rem; }
     .bar-btn {
       padding: 0.15rem 0.5rem;
       border: 1px solid #d1d5db;
@@ -233,7 +232,7 @@
       touch-action: manipulation;
     }
     .bar-btn:disabled { opacity: 0.4; cursor: default; }
-    .history-btns .bar-btn { min-width: 2rem; font-size: 0.95rem; line-height: 1; padding: 0.2rem 0.45rem; }
+    .history-btns .bar-btn, .note-btns .bar-btn { min-width: 2rem; font-size: 0.95rem; line-height: 1; padding: 0.2rem 0.45rem; }
     .line-stamp-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
     [data-theme="dark"] .bar-btn { border-color: #3f3f46; }
   }

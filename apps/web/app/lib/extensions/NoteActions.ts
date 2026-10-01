@@ -5,9 +5,11 @@ type PMNode = EditorState['doc']
 
 declare module '@tiptap/core' {
   interface Commands<ReturnType> {
-    moveToTop: {
+    noteActions: {
       /** Move the note at the cursor (or the selected notes) to the top of the document. */
       moveToTop: () => ReturnType
+      /** Delete the note at the cursor (or the selected notes). */
+      deleteNote: () => ReturnType
     }
   }
 }
@@ -16,9 +18,11 @@ const LIST_ITEMS = ['listItem', 'taskItem']
 
 /** Meta flag so other plugins (e.g. LineTimestamps) treat this as a move, not new writing. */
 export const MOVE_META = 'moveToTop'
+/** Meta flag marking a note deletion (drives the "Entry deleted · Undo" toast). */
+export const DELETE_META = 'deleteNote'
 
 /**
- * What gets moved:
+ * The "note" both actions operate on:
  * - a selection spanning several top-level blocks → all of them, in order;
  * - the cursor inside a list/checkbox item → that item (with its sub-items),
  *   re-wrapped in the same kind of list at the top;
@@ -53,8 +57,8 @@ function findTarget(state: EditorState): { from: number; to: number; content: PM
   return { from: $from.before(1), to: $from.after(1), content: [$from.node(1)] }
 }
 
-export const MoveToTop = Extension.create({
-  name: 'moveToTop',
+export const NoteActions = Extension.create({
+  name: 'noteActions',
 
   addCommands() {
     return {
@@ -89,6 +93,26 @@ export const MoveToTop = Extension.create({
           tr.setMeta(MOVE_META, { screenTop })
           return true
         },
+
+      deleteNote:
+        () =>
+        ({ state, tr, dispatch }) => {
+          const target = findTarget(state)
+          if (!target) return false
+          if (!dispatch) return true
+
+          // The document must keep at least one block.
+          if (target.from === 0 && target.to === state.doc.content.size) {
+            tr.replaceWith(0, target.to, state.schema.nodes.paragraph.create())
+          } else {
+            tr.delete(target.from, target.to)
+          }
+          // Cursor stays at the spot the note left; text below simply moves up.
+          const $pos = tr.doc.resolve(Math.min(tr.mapping.map(target.from), tr.doc.content.size))
+          tr.setSelection(TextSelection.near($pos))
+          tr.setMeta(DELETE_META, true)
+          return true
+        },
     }
   },
 
@@ -107,6 +131,7 @@ export const MoveToTop = Extension.create({
   addKeyboardShortcuts() {
     return {
       'Mod-Shift-ArrowUp': () => this.editor.commands.moveToTop(),
+      'Mod-Shift-Backspace': () => this.editor.commands.deleteNote(),
     }
   },
 })

@@ -1,7 +1,7 @@
 import { Extension, combineTransactionSteps, getChangedRanges } from '@tiptap/core'
 import { Plugin, PluginKey, type Transaction } from 'prosemirror-state'
 import { Decoration, DecorationSet } from 'prosemirror-view'
-import { MOVE_META } from './MoveToTop'
+import { MOVE_META } from './NoteActions'
 
 const pluginKey = new PluginKey('lineTimestamps')
 export const TIMESTAMPED_TYPES = ['paragraph', 'heading']

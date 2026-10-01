@@ -15,11 +15,11 @@ import { authClient } from '../lib/auth-client'
 import { TIERS, type TierName } from '../lib/tiers'
 import { ContentLimit, type ContentLimitStorage } from '../lib/extensions/ContentLimit'
 import { LineTimestamps, TIMESTAMPED_TYPES, formatStamp } from '../lib/extensions/LineTimestamps'
-import { MoveToTop, MOVE_META } from '../lib/extensions/MoveToTop'
+import { NoteActions, MOVE_META, DELETE_META } from '../lib/extensions/NoteActions'
 import SyncModal from './SyncModal'
 import UpgradeModal from './UpgradeModal'
 import EditorPlaceholder from './EditorPlaceholder'
-import MoveToTopHandle from './MoveToTopHandle'
+import NoteHandle from './NoteHandle'
 import type { SubscriptionStatus } from '../api/user/subscription-status/route'
 
 type Session = NonNullable<ReturnType<typeof authClient.useSession>['data']>
@@ -110,7 +110,7 @@ export default function Editor({ session, subscriptionStatus }: EditorProps) {
       TaskItem.configure({ nested: true }),
       ContentLimit.configure(limits),
       LineTimestamps,
-      MoveToTop,
+      NoteActions,
     ],
   })
 
@@ -147,17 +147,23 @@ export default function Editor({ session, subscriptionStatus }: EditorProps) {
     }),
   }) ?? { canUndo: false, canRedo: false }
 
-  // "Moved to top · Undo" toast, shown for any move (shortcut, margin handle,
-  // bottom-bar button) by watching for the move transaction.
-  const [movedToast, setMovedToast] = useState(false)
+  // "Moved to top · Undo" / "Entry deleted · Undo" toast, shown however the
+  // action was triggered (shortcut, margin handle, bottom bar) by watching for
+  // the action's transaction.
+  const [noteToast, setNoteToast] = useState<string | null>(null)
   useEffect(() => {
     if (!editor) return
     let timer: ReturnType<typeof setTimeout> | undefined
     const onTransaction = ({ transaction }: { transaction: { getMeta: (k: string) => unknown } }) => {
-      if (!transaction.getMeta(MOVE_META)) return
-      setMovedToast(true)
+      const message = transaction.getMeta(MOVE_META)
+        ? 'Moved to top'
+        : transaction.getMeta(DELETE_META)
+          ? 'Entry deleted'
+          : null
+      if (!message) return
+      setNoteToast(message)
       clearTimeout(timer)
-      timer = setTimeout(() => setMovedToast(false), 4000)
+      timer = setTimeout(() => setNoteToast(null), 5000)
     }
     editor.on('transaction', onTransaction)
     return () => { editor.off('transaction', onTransaction); clearTimeout(timer) }
@@ -381,29 +387,42 @@ export default function Editor({ session, subscriptionStatus }: EditorProps) {
               </button>
             </span>
             <span className="line-stamp-text">{currentStamp}</span>
-            <button
-              type="button"
-              className="bar-btn move-top-btn"
-              // Keep focus in the editor so the phone keyboard stays open.
-              onMouseDown={(e) => e.preventDefault()}
-              onClick={() => editor?.commands.moveToTop()}
-              aria-label="Move note to top"
-            >
-              ↑ Top
-            </button>
+            <span className="note-btns">
+              <button
+                type="button"
+                className="bar-btn"
+                // Keep focus in the editor so the phone keyboard stays open.
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => editor?.commands.moveToTop()}
+                aria-label="Move note to top"
+                title="Move to top"
+              >
+                ↑
+              </button>
+              <button
+                type="button"
+                className="bar-btn"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => editor?.commands.deleteNote()}
+                aria-label="Delete entry"
+                title="Delete entry"
+              >
+                ✕
+              </button>
+            </span>
           </span>
         </div>
       )}
 
-      <MoveToTopHandle editor={editor} />
+      <NoteHandle editor={editor} />
 
-      {movedToast && (
+      {noteToast && (
         <div className="moved-toast" role="status">
-          Moved to top
+          {noteToast}
           <button
             type="button"
             onMouseDown={(e) => e.preventDefault()}
-            onClick={() => { editor?.commands.undo(); setMovedToast(false) }}
+            onClick={() => { editor?.commands.undo(); setNoteToast(null) }}
           >
             Undo
           </button>

@@ -7,15 +7,15 @@ import { TextSelection } from 'prosemirror-state'
 const LIST_ITEMS = ['listItem', 'taskItem']
 // The left margin (beside the text) counts as hovering the line next to it,
 // so the pointer can travel from the text to the handle without losing it.
-const GUTTER_PX = 48
+const GUTTER_PX = 72
 const HIDE_DELAY_MS = 250
 
 /**
- * Desktop-only "↑" button in the left margin, next to the note under the mouse.
- * A single floating element (not one per line), positioned from the hovered
- * block's DOM rect. Clicking moves that note to the top.
+ * Desktop-only note controls in the left margin, next to the note under the
+ * mouse: ✕ deletes it, ↑ moves it to the top. A single floating element (not
+ * one per line), positioned from the hovered block's DOM rect.
  */
-export default function MoveToTopHandle({ editor }: { editor: Editor | null }) {
+export default function NoteHandle({ editor }: { editor: Editor | null }) {
   const [box, setBox] = useState<{ top: number; left: number; pos: number } | null>(null)
   const overHandle = useRef(false)
   const hideTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
@@ -76,25 +76,29 @@ export default function MoveToTopHandle({ editor }: { editor: Editor | null }) {
 
   if (!editor || !box) return null
 
+  // Put the cursor in the hovered note, then run the action on it.
+  const run = (action: 'moveToTop' | 'deleteNote') => {
+    const { state } = editor
+    const sel = TextSelection.near(state.doc.resolve(Math.min(box.pos + 1, state.doc.content.size)))
+    editor.chain().setTextSelection({ from: sel.from, to: sel.to })[action]().run()
+    overHandle.current = false
+    setBox(null)
+  }
+
   return (
-    <button
-      type="button"
-      className="move-top-handle"
+    <div
+      className="note-handle"
       style={{ top: box.top, left: box.left }}
-      title="Move to top (⌘⇧↑)"
-      aria-label="Move note to top"
       onMouseEnter={() => { overHandle.current = true; clearTimeout(hideTimer.current) }}
       onMouseLeave={() => { overHandle.current = false }}
       onMouseDown={(e) => e.preventDefault()}
-      onClick={() => {
-        const { state } = editor
-        const sel = TextSelection.near(state.doc.resolve(Math.min(box.pos + 1, state.doc.content.size)))
-        editor.chain().setTextSelection({ from: sel.from, to: sel.to }).moveToTop().run()
-        overHandle.current = false
-        setBox(null)
-      }}
     >
-      <span className="move-top-glyph">↑</span>
-    </button>
+      <button type="button" className="note-handle-btn" title="Delete entry (⌘⇧⌫)" aria-label="Delete entry" onClick={() => run('deleteNote')}>
+        ✕
+      </button>
+      <button type="button" className="note-handle-btn" title="Move to top (⌘⇧↑)" aria-label="Move note to top" onClick={() => run('moveToTop')}>
+        ↑
+      </button>
+    </div>
   )
 }
