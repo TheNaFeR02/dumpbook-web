@@ -20,6 +20,7 @@ import SyncModal from './SyncModal'
 import UpgradeModal from './UpgradeModal'
 import EditorPlaceholder from './EditorPlaceholder'
 import NoteHandle from './NoteHandle'
+import TrashIcon from './icons/TrashIcon'
 import type { SubscriptionStatus } from '../api/user/subscription-status/route'
 
 type Session = NonNullable<ReturnType<typeof authClient.useSession>['data']>
@@ -407,7 +408,7 @@ export default function Editor({ session, subscriptionStatus }: EditorProps) {
                 aria-label="Delete entry"
                 title="Delete entry"
               >
-                ✕
+                <TrashIcon />
               </button>
             </span>
           </span>

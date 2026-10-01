@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { Editor } from '@tiptap/react'
 import { TextSelection } from 'prosemirror-state'
+import TrashIcon from './icons/TrashIcon'
 
 const LIST_ITEMS = ['listItem', 'taskItem']
 // The left margin (beside the text) counts as hovering the line next to it,
@@ -12,7 +13,7 @@ const HIDE_DELAY_MS = 250
 
 /**
  * Desktop-only note controls in the left margin, next to the note under the
- * mouse: ✕ deletes it, ↑ moves it to the top. A single floating element (not
+ * mouse: the trash can deletes it, ↑ moves it to the top. A single floating element (not
  * one per line), positioned from the hovered block's DOM rect.
  */
 export default function NoteHandle({ editor }: { editor: Editor | null }) {
@@ -94,7 +95,7 @@ export default function NoteHandle({ editor }: { editor: Editor | null }) {
       onMouseDown={(e) => e.preventDefault()}
     >
       <button type="button" className="note-handle-btn" title="Delete entry (⌘⇧⌫)" aria-label="Delete entry" onClick={() => run('deleteNote')}>
-        ✕
+        <TrashIcon />
       </button>
       <button type="button" className="note-handle-btn" title="Move to top (⌘⇧↑)" aria-label="Move note to top" onClick={() => run('moveToTop')}>
         ↑

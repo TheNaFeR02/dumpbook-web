@@ -232,7 +232,10 @@
       touch-action: manipulation;
     }
     .bar-btn:disabled { opacity: 0.4; cursor: default; }
-    .history-btns .bar-btn, .note-btns .bar-btn { min-width: 2rem; font-size: 0.95rem; line-height: 1; padding: 0.2rem 0.45rem; }
+    .history-btns .bar-btn, .note-btns .bar-btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      min-width: 2rem; min-height: 1.6rem; font-size: 0.95rem; line-height: 1; padding: 0.2rem 0.45rem;
+    }
     .line-stamp-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
     [data-theme="dark"] .bar-btn { border-color: #3f3f46; }
   }
