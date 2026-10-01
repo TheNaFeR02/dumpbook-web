@@ -5,6 +5,10 @@ import type { Editor } from '@tiptap/react'
 import { TextSelection } from 'prosemirror-state'
 
 const LIST_ITEMS = ['listItem', 'taskItem']
+// The left margin (beside the text) counts as hovering the line next to it,
+// so the pointer can travel from the text to the handle without losing it.
+const GUTTER_PX = 48
+const HIDE_DELAY_MS = 250
 
 /**
  * Desktop-only "↑" button in the left margin, next to the note under the mouse.
@@ -14,23 +18,39 @@ const LIST_ITEMS = ['listItem', 'taskItem']
 export default function MoveToTopHandle({ editor }: { editor: Editor | null }) {
   const [box, setBox] = useState<{ top: number; left: number; pos: number } | null>(null)
   const overHandle = useRef(false)
+  const hideTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
 
   useEffect(() => {
     if (!editor) return
     const view = editor.view
-    const area = view.dom.closest('.editor-wrapper') as HTMLElement | null
-    if (!area) return
+    const scroller = view.dom.closest('.editor-scroll-area') as HTMLElement | null
+    if (!scroller) return
+
+    const show = (next: { top: number; left: number; pos: number }) => {
+      clearTimeout(hideTimer.current)
+      setBox((prev) => (prev && prev.pos === next.pos && prev.top === next.top ? prev : next))
+    }
+    const hideSoon = () => {
+      if (overHandle.current) return
+      clearTimeout(hideTimer.current)
+      hideTimer.current = setTimeout(() => { if (!overHandle.current) setBox(null) }, HIDE_DELAY_MS)
+    }
 
     const onMove = (e: MouseEvent) => {
       if (overHandle.current) return
       const content = view.dom.getBoundingClientRect()
+      const area = scroller.getBoundingClientRect()
+      const inBand =
+        e.clientX >= content.left - GUTTER_PX && e.clientX <= content.right &&
+        e.clientY >= area.top && e.clientY <= area.bottom
+      if (!inBand) return hideSoon()
+
       // Probe at the pointer's x when inside the text, else just inside the left
-      // edge, so hovering the margin still targets the line beside it.
-      const x = Math.max(e.clientX, content.left + 2)
-      const hit = view.posAtCoords({ left: x, top: e.clientY })
-      if (!hit) return setBox(null)
+      // edge, so the margin targets the line beside it.
+      const hit = view.posAtCoords({ left: Math.max(e.clientX, content.left + 2), top: e.clientY })
+      if (!hit) return hideSoon()
       const $pos = view.state.doc.resolve(hit.pos)
-      if ($pos.depth === 0) return setBox(null)
+      if ($pos.depth === 0) return hideSoon()
 
       // Same unit as the command: innermost list item, else the top-level block.
       let depth = 1
@@ -38,22 +58,19 @@ export default function MoveToTopHandle({ editor }: { editor: Editor | null }) {
         if (LIST_ITEMS.includes($pos.node(d).type.name)) { depth = d; break }
       }
       const start = $pos.before(depth)
-      if (start === 0) return setBox(null) // already at the top
+      if (start === 0) return hideSoon() // already at the top
       const dom = view.nodeDOM(start) as HTMLElement | null
-      if (!dom?.getBoundingClientRect) return setBox(null)
-      const r = dom.getBoundingClientRect()
-      setBox({ top: r.top, left: content.left, pos: start })
+      if (!dom?.getBoundingClientRect) return hideSoon()
+      show({ top: dom.getBoundingClientRect().top, left: content.left, pos: start })
     }
-    const onLeave = () => { if (!overHandle.current) setBox(null) }
-    const onScroll = () => setBox(null)
+    const onScroll = () => { if (!overHandle.current) setBox(null) }
 
-    area.addEventListener('mousemove', onMove)
-    area.addEventListener('mouseleave', onLeave)
-    area.addEventListener('scroll', onScroll, true)
+    document.addEventListener('mousemove', onMove)
+    scroller.addEventListener('scroll', onScroll)
     return () => {
-      area.removeEventListener('mousemove', onMove)
-      area.removeEventListener('mouseleave', onLeave)
-      area.removeEventListener('scroll', onScroll, true)
+      document.removeEventListener('mousemove', onMove)
+      scroller.removeEventListener('scroll', onScroll)
+      clearTimeout(hideTimer.current)
     }
   }, [editor])
 
@@ -66,8 +83,8 @@ export default function MoveToTopHandle({ editor }: { editor: Editor | null }) {
       style={{ top: box.top, left: box.left }}
       title="Move to top (⌘⇧↑)"
       aria-label="Move note to top"
-      onMouseEnter={() => { overHandle.current = true }}
-      onMouseLeave={() => { overHandle.current = false; setBox(null) }}
+      onMouseEnter={() => { overHandle.current = true; clearTimeout(hideTimer.current) }}
+      onMouseLeave={() => { overHandle.current = false }}
       onMouseDown={(e) => e.preventDefault()}
       onClick={() => {
         const { state } = editor
@@ -77,7 +94,7 @@ export default function MoveToTopHandle({ editor }: { editor: Editor | null }) {
         setBox(null)
       }}
     >
-      ↑
+      <span className="move-top-glyph">↑</span>
     </button>
   )
 }

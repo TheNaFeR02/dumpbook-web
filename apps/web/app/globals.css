@@ -185,25 +185,35 @@
   }
 
   /* Move to top: desktop margin handle, phone bottom-bar button, toast */
+  /* The button's hit area reaches right up to the text (no gap to cross);
+     only the inner glyph is drawn. */
   .move-top-handle {
     position: fixed;
-    transform: translate(calc(-100% - 0.6rem), 0.05rem);
-    width: 1.4rem;
-    height: 1.4rem;
-    display: grid;
-    place-items: center;
-    padding: 0;
-    border: 1px solid transparent;
-    border-radius: 4px;
+    transform: translateX(-100%);
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-start;
+    width: 2.6rem;
+    height: 1.6rem;
+    padding: 0 0 0 0.4rem;
+    border: 0;
     background: transparent;
-    color: #9ca3af;
     font: inherit;
-    font-size: 0.8rem;
     cursor: pointer;
     z-index: 5;
   }
-  .move-top-handle:hover { border-color: #d1d5db; color: #111; }
-  [data-theme="dark"] .move-top-handle:hover { border-color: #3f3f46; color: #e4e4e7; }
+  .move-top-glyph {
+    display: grid;
+    place-items: center;
+    width: 1.4rem;
+    height: 1.4rem;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    color: #9ca3af;
+    font-size: 0.8rem;
+  }
+  .move-top-handle:hover .move-top-glyph { border-color: #d1d5db; color: #111; }
+  [data-theme="dark"] .move-top-handle:hover .move-top-glyph { border-color: #3f3f46; color: #e4e4e7; }
   @media (max-width: 1099px) { .move-top-handle { display: none; } }
 
   .move-top-btn { display: none; }
