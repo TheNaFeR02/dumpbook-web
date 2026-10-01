@@ -51,6 +51,7 @@ export default function Editor({ session, subscriptionStatus }: EditorProps) {
     setTheme((prev) => {
       const next = prev === 'dark' ? 'light' : 'dark'
       document.documentElement.setAttribute('data-theme', next)
+      document.querySelector('meta[name="theme-color"]')?.setAttribute('content', next === 'dark' ? '#161618' : '#ffffff')
       try { localStorage.setItem('dumpbook-theme', next) } catch { }
       return next
     })

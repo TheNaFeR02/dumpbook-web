@@ -1,10 +1,21 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import localFont from 'next/font/local'
 import "./globals.css"
 
 export const metadata: Metadata = {
   title: "Dumpbook",
   description: "Dumping thoughts.",
+  appleWebApp: { capable: true, title: "Dumpbook", statusBarStyle: "default" },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  // Lay out under notches/status bars; globals.css pads with safe-area insets.
+  viewportFit: "cover",
+  // Android: the on-screen keyboard shrinks the layout instead of overlaying
+  // it, so the caret in the (fixed-height) editor stays visible while typing.
+  interactiveWidget: "resizes-content",
 };
 
 const iAWriterDuospacefont = localFont({
@@ -40,33 +51,17 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${iAWriterDuospacefont.className} ${iAWriterDuospacefont.variable}`} suppressHydrationWarning>
       <head>
+        {/* Colors the installed app's title/status bar; kept in sync with the theme below and in Editor's toggle. */}
+        <meta name="theme-color" content="#ffffff" />
         <script
           // Set the theme before first paint to avoid a flash of the wrong mode.
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=localStorage.getItem('dumpbook-theme');if(t!=='light'&&t!=='dark'){t=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}document.documentElement.setAttribute('data-theme',t);}catch(e){}})();`,
+            __html: `(function(){try{var t=localStorage.getItem('dumpbook-theme');if(t!=='light'&&t!=='dark'){t=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}document.documentElement.setAttribute('data-theme',t);document.querySelector('meta[name="theme-color"]').setAttribute('content',t==='dark'?'#161618':'#ffffff');}catch(e){}})();`,
           }}
         />
       </head>
-      <body
-        style={{
-          height: "100dvh",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "flex-start",
-          padding: "3rem 1.5rem",
-          boxSizing: "border-box",
-          margin: 0,
-        }}
-      >
-        <main
-          style={{
-            width: "100%",
-            maxWidth: "680px",
-            height: "100%",
-          }}
-        >
-          {children}
-        </main>
+      <body>
+        <main>{children}</main>
       </body>
     </html>
   );
