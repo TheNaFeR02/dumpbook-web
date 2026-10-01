@@ -10,6 +10,7 @@ import {
 import { EditorContent, useEditor, useEditorState } from '@tiptap/react'
 import Collaboration from '@tiptap/extension-collaboration'
 import { StarterKit } from '@tiptap/starter-kit'
+import { TaskList, TaskItem } from '@tiptap/extension-list'
 import { authClient } from '../lib/auth-client'
 import { TIERS, type TierName } from '../lib/tiers'
 import { ContentLimit, type ContentLimitStorage } from '../lib/extensions/ContentLimit'
@@ -98,6 +99,9 @@ export default function Editor({ session, subscriptionStatus }: EditorProps) {
     extensions: [
       StarterKit.configure({ undoRedo: false }),
       Collaboration.configure({ document: provider.document }),
+      TaskList,
+      // `[ ] ` / `[x] ` at line start creates a checkbox; nested lets sub-tasks indent with Tab.
+      TaskItem.configure({ nested: true }),
       ContentLimit.configure(limits),
     ],
   })
