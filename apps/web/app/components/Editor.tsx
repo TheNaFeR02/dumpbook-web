@@ -14,6 +14,7 @@ import { TaskList, TaskItem } from '@tiptap/extension-list'
 import { authClient } from '../lib/auth-client'
 import { TIERS, type TierName } from '../lib/tiers'
 import { ContentLimit, type ContentLimitStorage } from '../lib/extensions/ContentLimit'
+import { LineTimestamps, TIMESTAMPED_TYPES, formatStamp } from '../lib/extensions/LineTimestamps'
 import SyncModal from './SyncModal'
 import UpgradeModal from './UpgradeModal'
 import EditorPlaceholder from './EditorPlaceholder'
@@ -106,6 +107,7 @@ export default function Editor({ session, subscriptionStatus }: EditorProps) {
       // `[ ] ` / `[x] ` at line start creates a checkbox; nested lets sub-tasks indent with Tab.
       TaskItem.configure({ nested: true }),
       ContentLimit.configure(limits),
+      LineTimestamps,
     ],
   })
 
@@ -120,6 +122,18 @@ export default function Editor({ session, subscriptionStatus }: EditorProps) {
       }
     },
   }) ?? { wordCount: 0, charCount: 0, isEmpty: true }
+
+  // The cursor line's timestamp, shown in the bottom bar on narrow screens
+  // (desktop shows stamps in the right margin instead).
+  const currentStamp = useEditorState({
+    editor,
+    selector: (ctx) => {
+      if (!ctx.editor) return null
+      const block = ctx.editor.state.selection.$head.parent
+      const ts = TIMESTAMPED_TYPES.includes(block.type.name) ? block.attrs.createdAt : null
+      return ts ? formatStamp(ts) : null
+    },
+  }) ?? null
 
   // Show a loader until the initial document state has synced from the server,
   // so the editor doesn't flash in empty before the content arrives.
@@ -300,15 +314,20 @@ export default function Editor({ session, subscriptionStatus }: EditorProps) {
         </div>
       )}
 
-      {tier !== 'full' && !isLoadingContent && (
-        <div className="content-limit-bar">
-          <span className={counts.wordCount >= limits.wordLimit * 0.9 ? 'limit-warning' : ''}>
-            {counts.wordCount.toLocaleString()} / {limits.wordLimit.toLocaleString()} words
-          </span>
-          <span className="limit-separator">·</span>
-          <span className={counts.charCount >= limits.charLimit * 0.9 ? 'limit-warning' : ''}>
-            {counts.charCount.toLocaleString()} / {limits.charLimit.toLocaleString()} characters
-          </span>
+      {!isLoadingContent && (
+        <div className={`content-limit-bar ${tier === 'full' ? 'content-limit-bar--stamp-only' : ''}`}>
+          {tier !== 'full' && (
+            <>
+              <span className={counts.wordCount >= limits.wordLimit * 0.9 ? 'limit-warning' : ''}>
+                {counts.wordCount.toLocaleString()} / {limits.wordLimit.toLocaleString()} words
+              </span>
+              <span className="limit-separator">·</span>
+              <span className={counts.charCount >= limits.charLimit * 0.9 ? 'limit-warning' : ''}>
+                {counts.charCount.toLocaleString()} / {limits.charLimit.toLocaleString()} characters
+              </span>
+            </>
+          )}
+          <span className="line-stamp" aria-live="off">{currentStamp}</span>
         </div>
       )}
 

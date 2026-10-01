@@ -123,6 +123,67 @@
     text-decoration: line-through;
   }
 
+  /* Line timestamps: each line's write time, hidden until hover / current line */
+  .ProseMirror .ts {
+    position: relative;
+  }
+  .ProseMirror .ts::after {
+    content: attr(data-ts);
+    position: absolute;
+    top: 0.2em;
+    left: 100%;
+    margin-left: 1rem;
+    white-space: nowrap;
+    max-width: 12rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 0.7rem;
+    font-style: normal;
+    font-weight: 400;
+    letter-spacing: 0;
+    text-decoration: none;
+    color: #9ca3af;
+    opacity: 0;
+    pointer-events: none;
+    user-select: none;
+    transition: opacity 0.15s ease;
+  }
+  .ProseMirror .ts:hover::after,
+  .ProseMirror:focus .ts-current::after {
+    opacity: 1;
+  }
+  [data-theme="dark"] .ProseMirror .ts::after { color: #8b8f97; }
+
+  /* Wide screens: widen the scroll area to the right so the stamp gutter isn't
+     clipped. 13rem fits the longest locale formats seen (e.g. es-419
+     "mié 30 de sept · 10:48 p.m."); 1100px leaves room for it beside the column. */
+  @media (min-width: 1100px) {
+    .editor-scroll-area {
+      margin-right: -13rem;
+      padding-right: 13rem;
+      overflow-x: hidden;
+    }
+  }
+  /* Narrow screens have no margin or hover: hide the in-text stamps and show
+     the focused line's stamp in the bottom bar instead (no overlap, no reflow). */
+  .line-stamp { display: none; }
+  @media (max-width: 1099px) {
+    .ProseMirror .ts::after { display: none; }
+    .content-limit-bar { flex-wrap: wrap; }
+    /* Own row with a reserved height, so focusing dated/undated lines never resizes the editor. */
+    .line-stamp {
+      display: block;
+      flex-basis: 100%;
+      min-height: 1.2em;
+      text-align: right;
+      white-space: nowrap;
+    }
+  }
+  /* Full plan has no word counter: the bar exists only for the stamp on phones. */
+  @media (min-width: 1100px) {
+    .content-limit-bar--stamp-only { display: none; }
+  }
+
   /* Initial-sync loader: hide the (empty) editor until content arrives */
   .editor-scroll-area .editor-content {
     transition: opacity 0.2s ease;
