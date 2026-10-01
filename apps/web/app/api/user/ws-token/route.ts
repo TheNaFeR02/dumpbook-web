@@ -8,9 +8,9 @@ export async function GET() {
   const session = await auth.api.getSession({ headers: await headers() })
 
   if (!session) {
-    return NextResponse.json({ token: signWsToken('local') })
+    return NextResponse.json({ token: signWsToken('local', null) })
   }
 
   const { tier } = await resolveUserTier(session.user.id)
-  return NextResponse.json({ token: signWsToken(tier) })
+  return NextResponse.json({ token: signWsToken(tier, `user-${session.user.id}`) })
 }

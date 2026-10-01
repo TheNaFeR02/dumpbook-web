@@ -9,7 +9,7 @@ import Editor from './components/Editor'
 import { authClient } from './lib/auth-client'
 import type { InitData } from './api/user/init/route'
 
-export const INIT_CACHE_KEY = 'dumpbook_init'
+export const INIT_CACHE_KEY = 'dumpbook_init_v2'
 const INIT_CACHE_TTL_MS = 50 * 60 * 1000    // 50 min (ws-token valid 60 min)
 
 function getCached<T>(key: string, userId: string | null, ttl: number): T | null {

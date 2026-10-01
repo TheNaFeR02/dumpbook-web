@@ -16,12 +16,17 @@ mkdirSync(dataDir, { recursive: true })
 
 const HOCUSPOCUS_SECRET = process.env.HOCUSPOCUS_SECRET ?? ""
 if (!HOCUSPOCUS_SECRET) {
-  console.warn("[server] HOCUSPOCUS_SECRET not set — tier enforcement disabled, all signed-in users get sync limits")
+  // Fail closed: without the secret no token can be verified, so any client
+  // could open any document.
+  console.error("[server] HOCUSPOCUS_SECRET is not set — refusing to start")
+  process.exit(1)
 }
 
 type AppContext = { tier: TierName }
 
-function verifyWsToken(token: string): { tier: TierName } | null {
+type WsTokenPayload = { tier: TierName; room: string | null; exp: number }
+
+function verifyWsToken(token: string): WsTokenPayload | null {
   try {
     const dot = token.indexOf(".")
     if (dot === -1) return null
@@ -30,9 +35,9 @@ function verifyWsToken(token: string): { tier: TierName } | null {
     const expectedSig = createHmac("sha256", HOCUSPOCUS_SECRET).update(b64).digest("hex")
     if (sig.length !== expectedSig.length) return null
     if (!timingSafeEqual(Buffer.from(sig), Buffer.from(expectedSig))) return null
-    const payload = JSON.parse(Buffer.from(b64, "base64url").toString()) as { tier: TierName; exp: number }
+    const payload = JSON.parse(Buffer.from(b64, "base64url").toString()) as WsTokenPayload
     if (!payload.exp || payload.exp < Math.floor(Date.now() / 1000)) return null
-    return { tier: payload.tier }
+    return payload
   } catch {
     return null
   }
@@ -47,12 +52,11 @@ const server = new Server<AppContext>({
   extensions: [tieredSQLite],
 
   async onAuthenticate({ documentName, token, context }) {
-    if (!HOCUSPOCUS_SECRET) {
-      context.tier = documentName.startsWith("user-") ? "sync" : "local"
-      return
-    }
     const payload = verifyWsToken(token)
     if (!payload) throw new Error("Invalid or expired ws-token")
+    // A token opens exactly its own user's document; anonymous tokens only anon rooms.
+    const allowed = payload.room ? documentName === payload.room : documentName.startsWith("anon-")
+    if (!allowed) throw new Error("ws-token not valid for this document")
     context.tier = payload.tier
   },
 

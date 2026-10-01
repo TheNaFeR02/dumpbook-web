@@ -16,13 +16,13 @@ export async function GET() {
   if (!session) {
     return NextResponse.json({
       subscriptionStatus: { tier: 'local', trialDaysLeft: null },
-      wsToken: signWsToken('local'),
+      wsToken: signWsToken('local', null),
     } satisfies InitData)
   }
 
   const { tier, trialDaysLeft } = resolveUserTier(session.user.id)
   return NextResponse.json({
     subscriptionStatus: { tier, trialDaysLeft },
-    wsToken: signWsToken(tier),
+    wsToken: signWsToken(tier, `user-${session.user.id}`),
   } satisfies InitData)
 }

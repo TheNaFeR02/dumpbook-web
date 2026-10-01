@@ -4,8 +4,13 @@ import type { TierName } from '../api/user/subscription-status/route'
 
 const TOKEN_TTL_S = 60 * 60 // 1 hour
 
-export function signWsToken(tier: TierName): string {
-  const payload = JSON.stringify({ tier, exp: Math.floor(Date.now() / 1000) + TOKEN_TTL_S })
+/**
+ * `room` binds the token to one document: a signed-in user's token only opens
+ * `user-<their id>`. Anonymous tokens carry `room: null` and may only open
+ * `anon-*` rooms (their id lives client-side, so there's nothing to bind to).
+ */
+export function signWsToken(tier: TierName, room: string | null): string {
+  const payload = JSON.stringify({ tier, room, exp: Math.floor(Date.now() / 1000) + TOKEN_TTL_S })
   const b64 = Buffer.from(payload).toString('base64url')
   const sig = createHmac('sha256', env.HOCUSPOCUS_SECRET).update(b64).digest('hex')
   return `${b64}.${sig}`
