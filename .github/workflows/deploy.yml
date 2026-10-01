@@ -8,22 +8,22 @@ on:
 
 jobs:
   build-and-deploy:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       contents: read
       packages: write
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
-          node-version: '20'
+          node-version-file: .nvmrc
           cache: 'pnpm'
 
       - name: Install dependencies
@@ -42,6 +42,7 @@ jobs:
           HOCUSPOCUS_SECRET: ci-placeholder
         run: |
           cd apps/web
+          # Keep the CLI version equal to the better-auth version in apps/web/package.json.
           NODE_PATH=../../node_modules pnpm dlx auth@1.6.11 generate --output /tmp/schema.sql
           echo "SCHEMA_B64=$(base64 -w 0 /tmp/schema.sql)" >> $GITHUB_ENV
 
@@ -49,14 +50,14 @@ jobs:
         run: echo "IMAGE_PREFIX=ghcr.io/$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
 
       - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push server image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: apps/server/Dockerfile
@@ -64,7 +65,7 @@ jobs:
           tags: ${{ env.IMAGE_PREFIX }}/server:latest
 
       - name: Build and push web image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: apps/web/Dockerfile
