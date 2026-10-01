@@ -15,9 +15,11 @@ import { authClient } from '../lib/auth-client'
 import { TIERS, type TierName } from '../lib/tiers'
 import { ContentLimit, type ContentLimitStorage } from '../lib/extensions/ContentLimit'
 import { LineTimestamps, TIMESTAMPED_TYPES, formatStamp } from '../lib/extensions/LineTimestamps'
+import { MoveToTop, MOVE_META } from '../lib/extensions/MoveToTop'
 import SyncModal from './SyncModal'
 import UpgradeModal from './UpgradeModal'
 import EditorPlaceholder from './EditorPlaceholder'
+import MoveToTopHandle from './MoveToTopHandle'
 import type { SubscriptionStatus } from '../api/user/subscription-status/route'
 
 type Session = NonNullable<ReturnType<typeof authClient.useSession>['data']>
@@ -108,6 +110,7 @@ export default function Editor({ session, subscriptionStatus }: EditorProps) {
       TaskItem.configure({ nested: true }),
       ContentLimit.configure(limits),
       LineTimestamps,
+      MoveToTop,
     ],
   })
 
@@ -134,6 +137,22 @@ export default function Editor({ session, subscriptionStatus }: EditorProps) {
       return ts ? formatStamp(ts) : null
     },
   }) ?? null
+
+  // "Moved to top · Undo" toast, shown for any move (shortcut, margin handle,
+  // bottom-bar button) by watching for the move transaction.
+  const [movedToast, setMovedToast] = useState(false)
+  useEffect(() => {
+    if (!editor) return
+    let timer: ReturnType<typeof setTimeout> | undefined
+    const onTransaction = ({ transaction }: { transaction: { getMeta: (k: string) => unknown } }) => {
+      if (!transaction.getMeta(MOVE_META)) return
+      setMovedToast(true)
+      clearTimeout(timer)
+      timer = setTimeout(() => setMovedToast(false), 4000)
+    }
+    editor.on('transaction', onTransaction)
+    return () => { editor.off('transaction', onTransaction); clearTimeout(timer) }
+  }, [editor])
 
   // Show a loader until the initial document state has synced from the server,
   // so the editor doesn't flash in empty before the content arrives.
@@ -327,7 +346,34 @@ export default function Editor({ session, subscriptionStatus }: EditorProps) {
               </span>
             </>
           )}
-          <span className="line-stamp" aria-live="off">{currentStamp}</span>
+          <span className="line-stamp" aria-live="off">
+            {currentStamp}
+            <button
+              type="button"
+              className="move-top-btn"
+              // Keep focus in the editor so the phone keyboard stays open.
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => editor?.commands.moveToTop()}
+              aria-label="Move note to top"
+            >
+              ↑ Top
+            </button>
+          </span>
+        </div>
+      )}
+
+      <MoveToTopHandle editor={editor} />
+
+      {movedToast && (
+        <div className="moved-toast" role="status">
+          Moved to top
+          <button
+            type="button"
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => { editor?.commands.undo(); setMovedToast(false) }}
+          >
+            Undo
+          </button>
         </div>
       )}
 

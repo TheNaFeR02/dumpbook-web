@@ -184,6 +184,75 @@
     .content-limit-bar--stamp-only { display: none; }
   }
 
+  /* Move to top: desktop margin handle, phone bottom-bar button, toast */
+  .move-top-handle {
+    position: fixed;
+    transform: translate(calc(-100% - 0.6rem), 0.05rem);
+    width: 1.4rem;
+    height: 1.4rem;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    background: transparent;
+    color: #9ca3af;
+    font: inherit;
+    font-size: 0.8rem;
+    cursor: pointer;
+    z-index: 5;
+  }
+  .move-top-handle:hover { border-color: #d1d5db; color: #111; }
+  [data-theme="dark"] .move-top-handle:hover { border-color: #3f3f46; color: #e4e4e7; }
+  @media (max-width: 1099px) { .move-top-handle { display: none; } }
+
+  .move-top-btn { display: none; }
+  @media (max-width: 1099px) {
+    .move-top-btn {
+      display: inline;
+      margin-left: 0.9rem;
+      padding: 0.15rem 0.5rem;
+      border: 1px solid #d1d5db;
+      border-radius: 4px;
+      background: transparent;
+      color: inherit;
+      font: inherit;
+      cursor: pointer;
+    }
+    [data-theme="dark"] .move-top-btn { border-color: #3f3f46; }
+  }
+
+  .moved-toast {
+    position: fixed;
+    left: 50%;
+    /* Clear of the word-count / timestamp bar at the bottom. */
+    bottom: calc(5rem + env(safe-area-inset-bottom));
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    padding: 0.45rem 0.6rem 0.45rem 0.9rem;
+    border-radius: 6px;
+    background: #111;
+    color: #f4f4f5;
+    font-size: 0.75rem;
+    z-index: 20;
+    animation: moved-toast-in 0.15s ease;
+  }
+  .moved-toast button {
+    border: 0;
+    background: transparent;
+    color: #fcd34d;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+    padding: 0.1rem 0.3rem;
+  }
+  [data-theme="dark"] .moved-toast { background: #f4f4f5; color: #111; }
+  [data-theme="dark"] .moved-toast button { color: #92400e; }
+  @keyframes moved-toast-in { from { opacity: 0; transform: translate(-50%, 0.4rem); } }
+  @media (prefers-reduced-motion: reduce) { .moved-toast { animation: none; } }
+
   /* Initial-sync loader: hide the (empty) editor until content arrives */
   .editor-scroll-area .editor-content {
     transition: opacity 0.2s ease;

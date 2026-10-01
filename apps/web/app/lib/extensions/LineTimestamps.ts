@@ -1,6 +1,7 @@
 import { Extension, combineTransactionSteps, getChangedRanges } from '@tiptap/core'
 import { Plugin, PluginKey, type Transaction } from 'prosemirror-state'
 import { Decoration, DecorationSet } from 'prosemirror-view'
+import { MOVE_META } from './MoveToTop'
 
 const pluginKey = new PluginKey('lineTimestamps')
 export const TIMESTAMPED_TYPES = ['paragraph', 'heading']
@@ -74,6 +75,8 @@ export const LineTimestamps = Extension.create({
         appendTransaction(transactions, oldState, newState) {
           if (!transactions.some((tr) => tr.docChanged)) return null
           if (transactions.some((tr) => tr.getMeta('y-sync$') !== undefined)) return null
+          // A moved note isn't new writing (keeps its time; old notes stay undated).
+          if (transactions.some((tr) => tr.getMeta(MOVE_META))) return null
 
           const now = Date.now()
           const combined = combineTransactionSteps(oldState.doc, transactions as never)
