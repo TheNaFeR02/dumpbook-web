@@ -30,6 +30,20 @@ interface EditorProps {
   subscriptionStatus: SubscriptionStatus | null
 }
 
+// The text line (paragraph/heading) vertically beside a y coordinate, or the
+// nearest one when y falls in the gap between lines.
+function lineBesideY(root: HTMLElement, y: number): HTMLElement | null {
+  let best: HTMLElement | null = null
+  let bestDist = Infinity
+  for (const el of root.querySelectorAll<HTMLElement>('p, h1, h2, h3, h4, h5, h6')) {
+    const r = el.getBoundingClientRect()
+    const dist = y < r.top ? r.top - y : y > r.bottom ? y - r.bottom : 0
+    if (dist < bestDist) { best = el; bestDist = dist }
+    if (dist === 0) break
+  }
+  return best
+}
+
 export default function Editor({ session, subscriptionStatus }: EditorProps) {
   const provider = useHocuspocusProvider()
   const status = useHocuspocusConnectionStatus()
@@ -313,7 +327,23 @@ export default function Editor({ session, subscriptionStatus }: EditorProps) {
       <div
         className="editor-scroll-area"
         data-loading={isLoadingContent ? '' : undefined}
-        onClick={(e) => { if (e.target === e.currentTarget) editor?.commands.focus('end') }}
+        onClick={(e) => {
+          // Clicks on empty space around the text (e.g. the timestamp margin)
+          // put the cursor at the end of the line beside the click; only clicks
+          // below the last line go to the end of the document.
+          if (e.target !== e.currentTarget || !editor) return
+          const view = editor.view
+          if (e.clientY > view.dom.getBoundingClientRect().bottom) return void editor.commands.focus('end')
+          const line = lineBesideY(view.dom, e.clientY)
+          if (!line) return void editor.commands.focus('end')
+          const r = line.getBoundingClientRect()
+          const y = Math.min(Math.max(e.clientY, r.top + 1), r.bottom - 1)
+          const start = view.posAtDOM(line, 0)
+          const end = view.posAtDOM(line, line.childNodes.length)
+          const hit = view.posAtCoords({ left: r.right - 1, top: y })?.pos
+          const pos = hit != null && hit >= start && hit <= end ? hit : end
+          editor.chain().setTextSelection(pos).focus(undefined, { scrollIntoView: false }).run()
+        }}
         onScroll={(e) => {
           const top = e.currentTarget.scrollTop
           setTitleCollapsed((prev) => (prev ? top > 8 : top > 28))
