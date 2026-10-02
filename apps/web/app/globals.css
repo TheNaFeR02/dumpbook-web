@@ -185,6 +185,29 @@
     .content-limit-bar--stamp-only { display: none; }
   }
 
+  /* Day separators: "— jue 2 oct —" between days (drawn, not part of the text) */
+  .ProseMirror .day-sep {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    height: 1.9rem;
+    margin: 0.35rem 0;
+    user-select: none;
+    pointer-events: none;
+  }
+  .ProseMirror .day-sep-dash {
+    width: 1.1rem;
+    border-top: 1px solid #d1d5db;
+  }
+  .ProseMirror .day-sep-date {
+    font-size: 0.7rem;
+    color: #9ca3af;
+    letter-spacing: 0.01em;
+  }
+  [data-theme="dark"] .ProseMirror .day-sep-dash { border-top-color: #3f3f46; }
+  [data-theme="dark"] .ProseMirror .day-sep-date { color: #71717a; }
+
   /* Move to top: desktop margin handle, phone bottom-bar button, toast */
   /* Desktop note controls in the left margin. The container's hit area
      reaches right up to the text (no gap to cross); only the glyphs are drawn. */

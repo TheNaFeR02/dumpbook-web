@@ -16,6 +16,7 @@ import { TIERS, type TierName } from '../lib/tiers'
 import { ContentLimit, type ContentLimitStorage } from '../lib/extensions/ContentLimit'
 import { LineTimestamps, TIMESTAMPED_TYPES, formatStamp } from '../lib/extensions/LineTimestamps'
 import { NoteActions, MOVE_META, DELETE_META } from '../lib/extensions/NoteActions'
+import { DaySeparators } from '../lib/extensions/DaySeparators'
 import SyncModal from './SyncModal'
 import UpgradeModal from './UpgradeModal'
 import EditorPlaceholder from './EditorPlaceholder'
@@ -125,6 +126,7 @@ export default function Editor({ session, subscriptionStatus }: EditorProps) {
       TaskItem.configure({ nested: true }),
       ContentLimit.configure(limits),
       LineTimestamps,
+      DaySeparators,
       NoteActions,
     ],
   })

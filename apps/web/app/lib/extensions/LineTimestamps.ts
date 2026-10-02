@@ -11,6 +11,29 @@ const TYPES = TIMESTAMPED_TYPES
 const dayFmt = new Intl.DateTimeFormat(undefined, { weekday: 'short', day: 'numeric', month: 'short' })
 const timeFmt = new Intl.DateTimeFormat(undefined, { hour: 'numeric', minute: '2-digit' })
 
+const dayYearFmt = new Intl.DateTimeFormat(undefined, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })
+
+/** Local calendar day of a timestamp, e.g. "2026-10-2" (used to detect day changes). */
+export function dayKey(ms: number): string {
+  const d = new Date(ms)
+  return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`
+}
+
+const dayCache = new Map<string, string>()
+
+/** "jue 2 oct" (device language); includes the year when it isn't the current one. */
+export function formatDay(ms: number): string {
+  const key = dayKey(ms)
+  let out = dayCache.get(key)
+  if (out === undefined) {
+    const d = new Date(ms)
+    const fmt = d.getFullYear() === new Date().getFullYear() ? dayFmt : dayYearFmt
+    out = fmt.format(d).replace(/[.,]/g, '')
+    dayCache.set(key, out)
+  }
+  return out
+}
+
 const stampCache = new Map<number, string>()
 
 export function formatStamp(ms: number): string {
