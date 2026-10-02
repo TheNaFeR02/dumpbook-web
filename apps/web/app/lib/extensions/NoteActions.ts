@@ -78,6 +78,16 @@ export const NoteActions = Extension.create({
           tr.delete(target.from, target.to)
           tr.insert(0, target.content)
 
+          // Mark the moved lines as brought up now, so day separators count them
+          // in today's group (their written time is left untouched).
+          const now = Date.now()
+          const insertedSize = target.content.reduce((n, node) => n + node.nodeSize, 0)
+          tr.doc.nodesBetween(0, insertedSize, (node, pos) => {
+            if (!node.isTextblock) return true
+            if ('movedAt' in node.attrs) tr.setNodeAttribute(pos, 'movedAt', now)
+            return false
+          })
+
           // If the moved item landed right above a list of the same kind, merge
           // them so it reads as the newest item of that list.
           const first = tr.doc.firstChild

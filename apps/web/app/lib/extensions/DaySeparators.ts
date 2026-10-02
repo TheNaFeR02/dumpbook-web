@@ -1,7 +1,7 @@
 import { Extension } from '@tiptap/core'
 import { Plugin, PluginKey, Selection, TextSelection, type EditorState } from 'prosemirror-state'
 import { Decoration, DecorationSet, type EditorView } from 'prosemirror-view'
-import { TIMESTAMPED_TYPES, dayKey, formatDay } from './LineTimestamps'
+import { TIMESTAMPED_TYPES, dayKey, formatDay, placedAt } from './LineTimestamps'
 
 type PMNode = EditorState['doc']
 
@@ -20,7 +20,8 @@ function separatorDOM(label: string): HTMLElement {
 
 /**
  * Above the first dated line and wherever the day changes between two
- * consecutive dated lines, draw a quiet "— jue 2 oct —" separator. Derived from the lines' createdAt stamps, so
+ * consecutive dated lines, draw a quiet "— jue 2 oct —" separator. Lines are
+ * grouped by the day they were placed (brought to the top, else written). Derived from the lines' createdAt stamps, so
  * nothing is stored in the document: it can't be typed into, doesn't count
  * as words, and undated (older) lines are simply skipped.
  */
@@ -30,7 +31,7 @@ function buildSeparators(doc: PMNode): DecorationSet {
   let i = 0
   doc.descendants((node, pos) => {
     if (!TIMESTAMPED_TYPES.includes(node.type.name)) return true
-    const ts = node.attrs.createdAt as number | null
+    const ts = placedAt(node.attrs)
     if (!ts) return false
     const day = dayKey(ts)
     if (day !== prevDay) {

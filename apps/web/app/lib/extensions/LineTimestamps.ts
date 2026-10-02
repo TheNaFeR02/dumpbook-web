@@ -34,6 +34,16 @@ export function formatDay(ms: number): string {
   return out
 }
 
+/**
+ * When a line was placed where it is: the time it was brought to the top
+ * (movedAt), else when it was written. Day separators group by this, so a
+ * rescued note joins the day it was brought up, while its margin stamp keeps
+ * the original written time.
+ */
+export function placedAt(attrs: { createdAt?: number | null; movedAt?: number | null }): number | null {
+  return attrs.movedAt ?? attrs.createdAt ?? null
+}
+
 const stampCache = new Map<number, string>()
 
 export function formatStamp(ms: number): string {
@@ -78,6 +88,16 @@ export const LineTimestamps = Extension.create({
                     class: 'ts',
                   }
                 : {},
+          },
+          // Set by "move to top"; see placedAt(). Carried in the HTML so cut/paste keeps it.
+          movedAt: {
+            default: null,
+            keepOnSplit: false,
+            parseHTML: (el) => {
+              const v = Number(el.getAttribute('data-moved-at'))
+              return Number.isFinite(v) && v > 0 ? v : null
+            },
+            renderHTML: (attrs) => (attrs.movedAt ? { 'data-moved-at': String(attrs.movedAt) } : {}),
           },
         },
       },
